@@ -1,0 +1,24 @@
+@font-face {
+  font-family: "Folks"; font-weight: 300;
+  src: url(./FolksLight.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: "Folks"; font-weight: 400;
+  src: url(./FolksRegular.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: "Folks"; font-weight: 700;
+  src: url(./FolksBold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: "Folks"; font-weight: 800;
+  src: url(./FolksBlack.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: "Folks"; font-weight: 900;
+  src: url(./FolksHeavy.ttf) format('truetype');
+}
