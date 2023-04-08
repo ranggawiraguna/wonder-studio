@@ -13,7 +13,8 @@ import {
   Avatar,
   FormControl,
   InputLabel,
-  OutlinedInput
+  OutlinedInput,
+  InputAdornment
 } from '@mui/material';
 import { useTheme } from '@emotion/react';
 import { forwardRef, Fragment, useEffect, useState } from 'react';
@@ -23,8 +24,10 @@ import PropTypes from 'prop-types';
 import AlertToast from 'components/elements/AlertToast';
 import { Box } from '@mui/system';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db, storage } from 'config/firebase';
+import { db, otherAuth, storage } from 'config/firebase';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { signInWithEmailAndPassword, updateEmail, updatePassword, updateProfile } from 'firebase/auth';
 
 const DialogEditAdmin = forwardRef(({ open, onClose, data, ...others }, reference) => {
   const theme = useTheme();
@@ -34,6 +37,9 @@ const DialogEditAdmin = forwardRef(({ open, onClose, data, ...others }, referenc
   const [selectedImage, setSelectedImage] = useState(null);
 
   const [inputValues, setInputValues] = useState({
+    email: '',
+    username: '',
+    password: '',
     fullname: '',
     photoUrl: ''
   });
@@ -41,6 +47,9 @@ const DialogEditAdmin = forwardRef(({ open, onClose, data, ...others }, referenc
   useEffect(() => {
     if (open) {
       setInputValues({
+        email: data.email,
+        username: data.username,
+        password: data.password,
         fullname: data.fullname,
         photoUrl: data.photoUrl
       });
@@ -55,22 +64,24 @@ const DialogEditAdmin = forwardRef(({ open, onClose, data, ...others }, referenc
   });
 
   const getValueChanged = () => {
-    let data = {};
+    let newData = {};
 
     if (selectedImage) {
-      data = {
+      newData = {
         photoUrl: selectedImage
       };
     }
 
-    if (inputValues.fullname !== data.fullname) {
-      data = {
-        ...data,
-        fullname: inputValues.fullname
-      };
+    for (let key of Object.keys(inputValues)) {
+      if (key.toString() !== 'showPassword' && key.toString() !== 'photoUrl' && inputValues[key] !== data[key]) {
+        newData = {
+          ...newData,
+          [key]: inputValues[key]
+        };
+      }
     }
 
-    return data;
+    return newData;
   };
 
   const setProfileImage = (value) => {
@@ -94,37 +105,73 @@ const DialogEditAdmin = forwardRef(({ open, onClose, data, ...others }, referenc
     if (!isUpdateProcess) {
       setIsUpdateProcess(true);
 
-      const newData = getValueChanged();
+      let newData = getValueChanged();
 
-      if (Object.keys(data).length > 0) {
-        let photoUrl = '';
-        try {
-          const snapshot = await uploadBytes(ref(storage, `/admin-profiles/${data.username}`), selectedImage);
-          photoUrl = await getDownloadURL(snapshot.ref);
-        } catch (e) {
-          showAlertToast('warning', 'Terjadi kesalahan saat mengupload foto');
+      if (Object.keys(newData).length > 0) {
+        if (Object.keys(newData).includes('photoUrl')) {
+          try {
+            newData = {
+              ...newData,
+              photoUrl: await getDownloadURL((await uploadBytes(ref(storage, `/admin-profiles/${data.username}`), selectedImage)).ref)
+            };
+          } catch (e) {
+            showAlertToast('warning', 'Terjadi kesalahan saat mengupload foto');
+          }
         }
 
-        updateDoc(
-          doc(db, 'admins', data.username),
-          photoUrl
-            ? {
-                ...newData,
-                photoUrl: photoUrl
+        let error = false;
+        if (Object.keys(newData).includes('email') || Object.keys(newData).includes('password')) {
+          await signInWithEmailAndPassword(otherAuth, data.email, data.password)
+            .catch(() => showAlertToast('warning', 'Terjadi kesalahan,silahkan coba lagi'))
+            .then(async (userCredential) => {
+              if (userCredential && userCredential.user) {
+                if (Object.keys(newData).includes('email')) {
+                  try {
+                    await updateEmail(userCredential.user, newData.email);
+                    await updateDoc(doc(db, 'admins', data.id), { email: newData.email });
+                    delete newData.email;
+                  } catch (_) {
+                    showAlertToast('warning', _.toString());
+                    error = true;
+                  }
+                }
+                if (Object.keys(newData).includes('password')) {
+                  try {
+                    await updatePassword(userCredential.user, newData.password);
+                    await updateDoc(doc(db, 'admins', data.id), { password: newData.password });
+                    delete newData.password;
+                  } catch (_) {
+                    showAlertToast('warning', _.toString());
+                    error = true;
+                  }
+                }
+                if (Object.keys(newData).includes('username')) {
+                  try {
+                    await updateProfile(userCredential.user, {
+                      displayName: newData.username
+                    });
+                    await updateDoc(doc(db, 'admins', data.id), { username: newData.username });
+                    delete newData.username;
+                  } catch (_) {
+                    showAlertToast('warning', _.toString());
+                    error = true;
+                  }
+                }
               }
-            : newData
-        )
-          .then(() => {
+            });
+        }
+
+        if (!error) {
+          await updateDoc(doc(db, 'admins', data.id), newData).then(() => {
             showAlertToast('success', 'Berhasil memperbarui informasi admin');
             setTimeout(() => {
               setIsUpdateProcess(false);
               handleCloseUpdate();
             }, 2000);
-          })
-          .catch(() => {
-            showAlertToast('warning', 'Terjadi kesalahan, silahkan coba kembali');
-            setIsUpdateProcess(false);
           });
+        } else {
+          setIsUpdateProcess(false);
+        }
       } else {
         showAlertToast('warning', 'Silahkan periksa formulir akun dengan benar');
         setIsUpdateProcess(false);
@@ -212,6 +259,74 @@ const DialogEditAdmin = forwardRef(({ open, onClose, data, ...others }, referenc
               variant="outlined"
               className="input"
             >
+              <InputLabel htmlFor="InputUsername">Username</InputLabel>
+              <OutlinedInput
+                id="InputUsername"
+                type="name"
+                value={inputValues.username}
+                onChange={handleChangeInput('username')}
+                label="Username"
+                autoComplete="off"
+                onKeyDown={(ev) => {
+                  if (ev.key === 'Enter') {
+                    handleUpdate();
+                    ev.preventDefault();
+                  }
+                }}
+              />
+            </FormControl>
+            <FormControl
+              sx={{
+                width: '90%',
+                fontSize: 30,
+                input: { fontSize: 18, fontWeight: 'normal' },
+                label: { fontSize: 16, fontWeight: 'normal' },
+                span: { fontSize: 12, fontWeight: 'normal' }
+              }}
+              variant="outlined"
+              className="input"
+            >
+              <InputLabel htmlFor="InputPassword">Password</InputLabel>
+              <OutlinedInput
+                id="InputPassword"
+                type={inputValues.showPassword ? 'text' : 'password'}
+                value={inputValues.password}
+                onChange={handleChangeInput('password')}
+                label="Password"
+                autoComplete="off"
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setInputValues({ ...inputValues, showPassword: !inputValues.showPassword })}
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                      }}
+                      edge="end"
+                    >
+                      {inputValues.showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                }
+                onKeyDown={(ev) => {
+                  if (ev.key === 'Enter') {
+                    handleUpdate();
+                    ev.preventDefault();
+                  }
+                }}
+              />
+            </FormControl>
+            <FormControl
+              sx={{
+                width: '90%',
+                fontSize: 30,
+                input: { fontSize: 18, fontWeight: 'normal' },
+                label: { fontSize: 16, fontWeight: 'normal' },
+                span: { fontSize: 12, fontWeight: 'normal' }
+              }}
+              variant="outlined"
+              className="input"
+            >
               <InputLabel htmlFor="InputNamaLengkap">Nama Lengkap</InputLabel>
               <OutlinedInput
                 id="InputNamaLengkap"
@@ -220,6 +335,39 @@ const DialogEditAdmin = forwardRef(({ open, onClose, data, ...others }, referenc
                 onChange={handleChangeInput('fullname')}
                 label="NamaLengkap"
                 autoComplete="off"
+                onKeyDown={(ev) => {
+                  if (ev.key === 'Enter') {
+                    handleUpdate();
+                    ev.preventDefault();
+                  }
+                }}
+              />
+            </FormControl>
+            <FormControl
+              sx={{
+                width: '90%',
+                fontSize: 30,
+                input: { fontSize: 18, fontWeight: 'normal' },
+                label: { fontSize: 16, fontWeight: 'normal' },
+                span: { fontSize: 12, fontWeight: 'normal' }
+              }}
+              variant="outlined"
+              className="input"
+            >
+              <InputLabel htmlFor="InputEmail">Email</InputLabel>
+              <OutlinedInput
+                id="InputEmail"
+                type="name"
+                value={inputValues.email}
+                onChange={handleChangeInput('email')}
+                label="Email"
+                autoComplete="off"
+                onKeyDown={(ev) => {
+                  if (ev.key === 'Enter') {
+                    handleUpdate();
+                    ev.preventDefault();
+                  }
+                }}
               />
             </FormControl>
           </Grid>

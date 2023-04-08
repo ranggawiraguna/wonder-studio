@@ -171,7 +171,7 @@ export default function ProfileSection() {
                   <Box sx={{ p: 2 }}>
                     <Stack>
                       <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Typography variant="h4">{accountReducer.fullname != null ? accountReducer.fullname : 'Admin LFashion'}</Typography>
+                        <Typography variant="h4">{accountReducer.fullname != null ? accountReducer.fullname : 'User'}</Typography>
                       </Stack>
                       <Typography variant="subtitle2">
                         {(accountReducer.role != null

@@ -128,8 +128,8 @@ const DialogUpdateProfile = forwardRef(({ open, onClose, ...others }, ref) => {
         } else {
           dispatch(
             updateIdentity({
+              account: accountReducer,
               data: data,
-              username: accountReducer.username,
               setIsUpdateProcess: setIsUpdateProcess,
               showAlert: showAlertToast,
               handleClose: () => {
@@ -175,8 +175,8 @@ const DialogUpdateProfile = forwardRef(({ open, onClose, ...others }, ref) => {
           .then(() => {
             dispatch(
               updateIdentity({
+                account: accountReducer,
                 data: getValueChanged(),
-                username: accountReducer.username,
                 setIsUpdateProcess: setIsUpdateProcess,
                 showAlert: showAlertToast,
                 handleClose: () => {

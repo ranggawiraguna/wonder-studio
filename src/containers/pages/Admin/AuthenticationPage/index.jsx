@@ -8,10 +8,11 @@ import { MENU_OPEN } from 'utils/redux/action';
 import { useDispatch, useSelector } from 'react-redux';
 import DialogEditAdmin from 'components/views/DialogActionAuth/EditAdmin';
 import DialogAddAdmin from 'components/views/DialogActionAuth/AddAdmin';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { db, otherAuth } from 'config/firebase';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import { collection, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
+import { db, otherAuth, storage } from 'config/firebase';
+import { deleteUser, sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import AlertToast from 'components/elements/AlertToast';
+import { deleteObject, ref } from 'firebase/storage';
 
 const tableHeadContent = ['No.', 'Username', 'Email', 'Nama Lengkap', 'Foto Profil', 'Ubah Akun'];
 const tableAlignContent = ['center', 'left', 'left', 'left', 'center', 'center'];
@@ -25,7 +26,7 @@ export default function AuthenticationPage() {
   const [openDialogEditAdmin, setOpenDialogEditAdmin] = useState(false);
 
   const [accountSelected, setAccountSelected] = useState({
-    username: '',
+    id: '',
     fullname: '',
     photoUrl: ''
   });
@@ -63,7 +64,7 @@ export default function AuthenticationPage() {
     if (!(sidebarReducer.isOpen.findIndex((id) => id === 'authentication') > -1)) {
       dispatch({ type: MENU_OPEN, id: 'authentication' });
     }
-    const listenerAdmins = onSnapshot(query(collection(db, 'admins'), where('id', '!=', accountReducer.username)), (snapshot) => {
+    const listenerAdmins = onSnapshot(query(collection(db, 'admins'), where('username', '!=', accountReducer.username)), (snapshot) => {
       setAdmins(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));
       setIsOpenOption(snapshot.docs.map(() => false));
     });
@@ -101,7 +102,7 @@ export default function AuthenticationPage() {
             return admins.map((admin, index) => (
               <TableRow key={index}>
                 <TableCell align={tableAlignContent[0]}>{index + 1}</TableCell>
-                <TableCell align={tableAlignContent[1]}>{admin.id}</TableCell>
+                <TableCell align={tableAlignContent[1]}>{admin.username}</TableCell>
                 <TableCell align={tableAlignContent[2]}>{admin.email}</TableCell>
                 <TableCell align={tableAlignContent[3]}>{admin.fullname}</TableCell>
                 <TableCell align={tableAlignContent[4]}>
@@ -140,12 +141,34 @@ export default function AuthenticationPage() {
                             <Button
                               onClick={() => {
                                 closeClickaway(() => {
-                                  setAccountSelected({ fullname: admin.fullname, photoUrl: admin.photoUrl, username: admin.username });
+                                  setAccountSelected(admin);
                                   setOpenDialogEditAdmin(true);
                                 });
                               }}
                             >
-                              Edit Info
+                              Edit User
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                closeClickaway(async () => {
+                                  try {
+                                    deleteDoc(doc(db, 'admins', admin.id));
+                                    deleteObject(ref(storage, `/admin-profiles/${admin.username}`));
+                                    deleteUser(
+                                      (await signInWithEmailAndPassword(otherAuth, admin.email.toLowerCase(), admin.password)).user
+                                    );
+                                  } catch (_) {
+                                    setAlertDescription({
+                                      isOpen: true,
+                                      type: 'error',
+                                      text: _.toString(),
+                                      transitionName: 'slideUp'
+                                    });
+                                  }
+                                });
+                              }}
+                            >
+                              Hapus User
                             </Button>
                             <Button
                               onClick={() => {
@@ -170,7 +193,7 @@ export default function AuthenticationPage() {
         />
       </PageRoot>
       <DialogEditAdmin data={accountSelected} open={openDialogEditAdmin} onClose={() => setOpenDialogEditAdmin(false)} />
-      <DialogAddAdmin role="admin" open={openDialogAddAdmin} onClose={() => setOpenDialogAddAdmin(false)} />
+      <DialogAddAdmin open={openDialogAddAdmin} onClose={() => setOpenDialogAddAdmin(false)} />
       <AlertToast description={alertDescription} setDescription={setAlertDescription} />
     </Fragment>
   );

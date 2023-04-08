@@ -5,11 +5,11 @@ import ValidateLogin from 'utils/other/ValidateLogin';
 import RegisterPage from 'containers/pages/Common/RegisterPage';
 
 const StartedRoutes = [
-  <Route exact path="/" key="/" element={<StartedPage />} />,
-  <Route element={<ValidateLogin />}>
-    <Route exact path="/masuk" element={<LoginPage />} />
+  <Route exact key="Started Page" path="/" element={<StartedPage />} />,
+  <Route key="ValidateLogin" element={<ValidateLogin />}>
+    <Route key="Login Page" exact path="/masuk" element={<LoginPage />} />
   </Route>,
-  <Route exact path="/daftar" element={<RegisterPage />} />,
+  <Route exact key="Register Page" path="/daftar" element={<RegisterPage />} />,
 ];
 
 export default StartedRoutes;

@@ -9,7 +9,7 @@ import ValidateSession from 'utils/other/ValidateSession';
 import ManagerAccount from 'utils/other/ManagerAccount';
 
 const MainRoutes = [
-  <Route element={<ManagerAccount />}>
+  <Route key="Manager Account" element={<ManagerAccount />}>
     <Route key="Started Routes" path="/" element={<StartedContainer />} children={StartedRoutes} />,
     <Route key="Content Routes" element={<ManagerAccount />}>
       <Route key="Main Layout" element={<MainLayout />}>

@@ -24,12 +24,12 @@ import PropTypes from 'prop-types';
 import AlertToast from 'components/elements/AlertToast';
 import { Box } from '@mui/system';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, getDocs, limit, query, where } from 'firebase/firestore';
 import { db, otherAuth, storage } from 'config/firebase';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { createUserWithEmailAndPassword, deleteUser, signOut, updateProfile } from 'firebase/auth';
 
-const DialogAddAdmin = forwardRef(({ open, onClose, role, ...others }, reference) => {
+const DialogAddAdmin = forwardRef(({ open, onClose, ...others }, reference) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -79,13 +79,18 @@ const DialogAddAdmin = forwardRef(({ open, onClose, role, ...others }, reference
         inputValues.email !== '' &&
         selectedImage != null
       ) {
-        if (
-          !(await getDoc(doc(db, 'admins', inputValues.username))).exists() &&
-          !(await getDoc(doc(db, 'customers', inputValues.username))).exists()
-        ) {
+        const usernameAlreadyExists =
+          !(await getDocs(query(collection(db, 'admins'), where('username', '==', inputValues.username.toLowerCase()), limit(1)))).empty ||
+          !(await getDocs(query(collection(db, 'customers'), where('username', '==', inputValues.username.toLowerCase()), limit(1)))).empty;
+        const emailAlreadyExists =
+          !(await getDocs(query(collection(db, 'admins'), where('email', '==', inputValues.email.toLowerCase()), limit(1)))).empty ||
+          !(await getDocs(query(collection(db, 'customers'), where('email', '==', inputValues.email.toLowerCase()), limit(1)))).empty;
+
+        if (!usernameAlreadyExists && !emailAlreadyExists) {
           let photoUrl = '';
+          const profileRef = ref(storage, `/admin-profiles/${inputValues.username}`);
           try {
-            const snapshot = await uploadBytes(ref(storage, `/admin-profiles/${inputValues.username}`), selectedImage);
+            const snapshot = await uploadBytes(profileRef, selectedImage);
             photoUrl = await getDownloadURL(snapshot.ref);
           } catch (e) {
             showAlertToast('warning', 'Terjadi kesalahan saat mengupload foto');
@@ -93,18 +98,18 @@ const DialogAddAdmin = forwardRef(({ open, onClose, role, ...others }, reference
 
           createUserWithEmailAndPassword(otherAuth, inputValues.email, inputValues.password)
             .then((userCredential) => {
-              setDoc(doc(db, 'admins', inputValues.username), {
-                uid: userCredential.user.uid,
+              addDoc(collection(db, 'admins'), {
                 username: inputValues.username,
                 fullname: inputValues.fullname,
+                password: inputValues.password,
                 email: inputValues.email,
-                photoUrl: photoUrl,
-                role: role
+                photoUrl: photoUrl
               })
                 .catch(() => {
                   showAlertToast('warning', 'Akun gagal untuk di daftarkan, silahkan coba kembali');
                   setIsAddAdminProcess(false);
                   deleteUser(userCredential.user);
+                  deleteObject(profileRef);
                 })
                 .then(() => {
                   updateProfile(userCredential.user, {
@@ -113,18 +118,19 @@ const DialogAddAdmin = forwardRef(({ open, onClose, role, ...others }, reference
                     signOut(otherAuth);
                   });
                   showAlertToast('success', 'Berhasil menambahkan akun admin');
-                  setTimeout(() => {
-                    setIsAddAdminProcess(false);
-                    handleCloseAddAdmin();
-                  }, 2000);
+                  setIsAddAdminProcess(false);
+                  handleCloseAddAdmin();
                 });
             })
             .catch(() => {
               showAlertToast('warning', 'Akun gagal untuk di daftarkan, silahkan coba kembali');
               setIsAddAdminProcess(false);
             });
-        } else {
-          showAlertToast('warning', 'Username telah digunakan pada akun lainnya');
+        } else if (usernameAlreadyExists) {
+          showAlertToast('warning', 'Username telah digunakan pada akun lain');
+          setIsAddAdminProcess(false);
+        } else if (emailAlreadyExists) {
+          showAlertToast('warning', 'Email telah digunakan pada akun lain');
           setIsAddAdminProcess(false);
         }
       } else {
@@ -221,6 +227,12 @@ const DialogAddAdmin = forwardRef(({ open, onClose, role, ...others }, reference
                 onChange={handleChangeInput('username')}
                 label="Username"
                 autoComplete="off"
+                onKeyDown={(ev) => {
+                  if (ev.key === 'Enter') {
+                    handleAddAdmin();
+                    ev.preventDefault();
+                  }
+                }}
               />
             </FormControl>
             <FormControl
@@ -256,6 +268,12 @@ const DialogAddAdmin = forwardRef(({ open, onClose, role, ...others }, reference
                     </IconButton>
                   </InputAdornment>
                 }
+                onKeyDown={(ev) => {
+                  if (ev.key === 'Enter') {
+                    handleAddAdmin();
+                    ev.preventDefault();
+                  }
+                }}
               />
             </FormControl>
             <FormControl
@@ -277,6 +295,12 @@ const DialogAddAdmin = forwardRef(({ open, onClose, role, ...others }, reference
                 onChange={handleChangeInput('fullname')}
                 label="NamaLengkap"
                 autoComplete="off"
+                onKeyDown={(ev) => {
+                  if (ev.key === 'Enter') {
+                    handleAddAdmin();
+                    ev.preventDefault();
+                  }
+                }}
               />
             </FormControl>
             <FormControl
@@ -298,6 +322,12 @@ const DialogAddAdmin = forwardRef(({ open, onClose, role, ...others }, reference
                 onChange={handleChangeInput('email')}
                 label="Email"
                 autoComplete="off"
+                onKeyDown={(ev) => {
+                  if (ev.key === 'Enter') {
+                    handleAddAdmin();
+                    ev.preventDefault();
+                  }
+                }}
               />
             </FormControl>
           </Grid>

@@ -29,7 +29,7 @@ import { useDispatch } from 'react-redux';
 import { loginSession } from 'utils/redux/reducers/account';
 import { BoxTransition } from 'components/elements/MotionTransitions';
 import { useTheme } from '@emotion/react';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, limit, query, where } from 'firebase/firestore';
 import { auth, db } from 'config/firebase';
 import { sendPasswordResetEmail } from 'firebase/auth';
 
@@ -48,7 +48,7 @@ const DialogForgotPassword = forwardRef(({ open, onClose, showAlert, ...others }
   const handleClose = () => {
     if (!isSendingLinkProcess) {
       onClose();
-      isSendingLinkProcess(false);
+      setIsSendingLinkProcess(false);
       setTimeout(() => {
         setInputUsername('');
       }, 500);
@@ -60,17 +60,17 @@ const DialogForgotPassword = forwardRef(({ open, onClose, showAlert, ...others }
       setIsSendingLinkProcess(true);
       let docSnapshot = null;
       try {
-        docSnapshot = await getDoc(doc(db, 'customers', inputUsername));
+        docSnapshot = await getDocs(query(collection(db, "customers"), where('username', '==', inputUsername.toLowerCase()), limit(1)))
       } catch (e) {
-        showAlert('warning', 'Terjadi kesalahanm silahkan coba kembali');
+        showAlert('warning', 'Terjadi kesalahan silahkan coba kembali');
         setIsSendingLinkProcess(false);
       }
 
-      if (docSnapshot !== null && docSnapshot.exists()) {
-        await sendPasswordResetEmail(auth, docSnapshot.data().email)
+      if (!docSnapshot.empty) {
+        await sendPasswordResetEmail(auth, docSnapshot.docs[0].data().email)
           .then(() => {
             showAlert('success', 'Email reset password telah dikirim melalui email');
-            setIsSendingLinkProcess(false);
+            handleClose()
           })
           .catch((error) => {
             showAlert('warning', error.toString());
@@ -199,11 +199,10 @@ export default function LoginPage() {
     setValues({
       username: '',
       password: '',
-      showPassword: false,
+      showPassword: false
     });
     setIsLoginProcess(false);
   };
-
 
   const showAlertToast = (type, text) =>
     setAlertDescription({
@@ -272,6 +271,12 @@ export default function LoginPage() {
                     value={values.username}
                     onChange={handleChange('username')}
                     label="Username"
+                    onKeyDown={(ev) => {
+                      if (ev.key === 'Enter') {
+                        handleLoginSession()
+                        ev.preventDefault();
+                      }
+                    }}
                   />
                 </FormControl>
                 <FormControl variant="outlined" className="input">
@@ -294,6 +299,12 @@ export default function LoginPage() {
                       </InputAdornment>
                     }
                     label="Password"
+                    onKeyDown={(ev) => {
+                      if (ev.key === 'Enter') {
+                        handleLoginSession()
+                        ev.preventDefault();
+                      }
+                    }}
                   />
                 </FormControl>
                 <Button className="forgot-password" variant="text" onClick={() => setOpenDialogForgotPassword(true)}>
@@ -304,10 +315,10 @@ export default function LoginPage() {
                 </Button>
               </Box>
               <Box>
-                <Typography variant="p" component="p" sx={{padding:0.35, fontSize:14}}>
+                <Typography variant="p" component="p" sx={{ padding: 0.35, fontSize: 14 }}>
                   Belum memiliki akun ? &nbsp;
                 </Typography>
-                <Button variant="text" onClick={() => navigate('/daftar')} sx={{ padding: 0, minHeight: 0, margin:0 }}>
+                <Button variant="text" onClick={() => navigate('/daftar')} sx={{ padding: 0, minHeight: 0, margin: 0 }}>
                   Daftar Sekarang
                 </Button>
               </Box>

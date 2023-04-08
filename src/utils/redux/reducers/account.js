@@ -1,7 +1,7 @@
 /* eslint-disable no-loop-func */
 import * as actionTypes from '../action';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, limit, query, updateDoc, where } from 'firebase/firestore';
 import { auth, db, storage } from 'config/firebase';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
@@ -22,9 +22,9 @@ export function restoreSession(action) {
       let errorCheck = false;
       for (const path in paths) {
         try {
-          const docSnapshot = await getDoc(doc(db, paths[path], action.username)).catch(() => {});
-          if (docSnapshot && docSnapshot.exists()) {
-            data = { id: docSnapshot.id, ...docSnapshot.data() };
+          const docSnapshot = await getDocs(query(collection(db, paths[path]), where('username', '==', action.username.toLowerCase()), limit(1)));
+          if (!docSnapshot.empty) {
+            data = { id: docSnapshot.docs[0].id, ...docSnapshot.docs[0].data() };
             role = path;
             break;
           }
@@ -53,12 +53,13 @@ export function loginSession(action) {
     if (!action.isLoginProcess && action.data.username.length > 0 && action.data.password.length > 0) {
       action.setIsLoginProcess(true);
 
-      let docSnapshot = null;
+      let data = {};
       let errorCheck = false;
       for (const path in paths) {
         try {
-          docSnapshot = await getDoc(doc(db, paths[path], action.data.username.toString()));
-          if (docSnapshot !== null && docSnapshot.exists()) {
+          const docSnapshot = await getDocs(query(collection(db, paths[path]), where('username', '==', action.data.username.toLowerCase()), limit(1)));
+          if (!docSnapshot.empty) {
+            data = { id: docSnapshot.docs[0].id, ...docSnapshot.docs[0].data() };
             role = path;
             break;
           }
@@ -69,27 +70,25 @@ export function loginSession(action) {
       }
 
       if (!errorCheck) {
-        if (docSnapshot && docSnapshot.exists()) {
+        if (Object.keys(data).length > 0) {
           try {
-            const userCredential = await signInWithEmailAndPassword(
-              auth,
-              (await getDoc(doc(db, paths[role], action.data.username.toString()))).data().email,
-              action.data.password.toString()
-            );
+            const userCredential = await signInWithEmailAndPassword(auth, data.email.toLowerCase(), action.data.password);
             if (userCredential.user) {
               action.showAlertToast('success', 'Berhasil Login akun');
               action.clearAuthForm();
-              dispatch({ type: actionTypes.RESTORE_SESSION, data: { id: docSnapshot.id, ...docSnapshot.data() }, role: role });
-              switch (role) {
-                case 'admin':
-                  return action.navigate('/admin/dashboard');
-
-                case 'customer':
-                  return action.navigate('/customer/dashboard');
-
-                default:
-                  break;
-              }
+              setTimeout(() => {
+                dispatch({ type: actionTypes.RESTORE_SESSION, data: data, role: role });
+                switch (role) {
+                  case 'admin':
+                    return action.navigate('/admin/dashboard');
+  
+                  case 'customer':
+                    return action.navigate('/customer/dashboard');
+  
+                  default:
+                    break;
+                }
+              }, 1000);
             } else {
               throw Error;
             }
@@ -130,9 +129,9 @@ export function registerSession(action) {
         action.data.password.length <= 0
       ) {
         showAlert('warning', 'Silahkan lengkapi form login dengan benar');
-      } else if (action.data.username.length < 4 && action.data.username === action.data.username.toLowerCase()) {
+      } else if (action.data.username.length < 4 && action.data.username !== action.data.username.toLowerCase()) {
         showAlert('warning', 'Username harus terdiri dari huruf kecil dan minimal 4 karakter');
-      } else if (!action.data.email.substring(action.data.email.length - 10, action.data.email.length) === '@gmail.com') {
+      } else if (!action.data.email.toLowerCase().substring(action.data.email.length - 10, action.data.email.length) === '@gmail.com') {
         showAlert('warning', 'Email yang dimasukkan tidak dapat digunakan');
       } else if (action.data.password.length < 8) {
         showAlert('warning', 'Password harus terdiri dari minimal 8 karakter');
@@ -142,14 +141,14 @@ export function registerSession(action) {
         let usernameAlreadyExists = false;
         for (const path in paths) {
           try {
-            const usernameSnapshot = await getDoc(doc(db, paths[path], action.data.username));
-            if (usernameSnapshot && usernameSnapshot.exists()) {
+            const usernameSnapshot = await getDocs(query(collection(db, paths[path]), where('username', '==', action.data.username.toLowerCase()), limit(1)));
+            if (!usernameSnapshot.empty) {
               usernameAlreadyExists = true;
               break;
             }
 
-            const emailSnapshot = await getDocs(query(collection(db, paths[path]), where('email', '==', action.data.email)));
-            if (emailSnapshot && !emailSnapshot.empty) {
+            const emailSnapshot = await getDocs(query(collection(db, paths[path]), where('email', '==', action.data.email.toLowerCase()), limit(1)));
+            if (!emailSnapshot.empty) {
               emailAlreadyExists = true;
               break;
             }
@@ -167,18 +166,18 @@ export function registerSession(action) {
           showAlert('warning', 'Email yang dimasukkan telah digunakan');
         } else {
           try {
-            const userCredential = await createUserWithEmailAndPassword(auth, action.data.email, action.data.password);
+            const userCredential = await createUserWithEmailAndPassword(auth, action.data.email.toLowerCase(), action.data.password);
 
-            await setDoc(doc(db, 'customers', action.data.username), {
-              uid: userCredential.user.uid,
-              username: action.data.username,
+            await addDoc(collection(db, 'customers'), {
+              username: action.data.username.toLowerCase(),
+              password: action.data.password,
               fullname: action.data.fullname,
-              email: action.data.email,
+              email: action.data.email.toLowerCase(),
               photoUrl: ''
             });
 
             await updateProfile(userCredential.user, {
-              displayName: action.data.username
+              displayName: action.data.toLowerCase()
             });
 
             await auth.signOut();
@@ -202,7 +201,10 @@ export function updateIdentity(action) {
       let result;
       if (action.data['photoUrl']) {
         try {
-          const snapshot = await uploadBytes(ref(storage, `/${paths[action.role]}-profile/${action.username}`), action.data.photoUrl);
+          const snapshot = await uploadBytes(
+            ref(storage, `/${paths[action.account.role]}-profile/${action.account.username.toLowerCase()}`),
+            action.data.photoUrl
+          );
           result = await getDownloadURL(snapshot.ref);
         } catch (e) {
           result = null;
@@ -212,7 +214,7 @@ export function updateIdentity(action) {
       }
 
       if (result) {
-        await updateDoc(doc(db, paths[action.role], action.username), {
+        await updateDoc(doc(db, paths[action.account.role], action.account.id), {
           ...(result !== ' ' ? { ...action.data, photoUrl: result } : { ...action.data })
         })
           .catch((error) => {
@@ -241,7 +243,7 @@ const accountReducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.CLEAR_SESSION:
       return {
-        username: '',
+        id: '',
         role: '',
         isLogin: false
       };
@@ -249,7 +251,7 @@ const accountReducer = (state = initialState, action) => {
     case actionTypes.RESTORE_SESSION:
       return {
         ...action.data,
-        username: action.data.id,
+        id: action.data.id,
         role: action.role,
         isLogin: true
       };
