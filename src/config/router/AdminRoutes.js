@@ -8,12 +8,14 @@ import ProductAddPage from 'containers/pages/Admin/ProductAddPage';
 import OrderListPage from 'containers/pages/Admin/OrderListPage';
 import OrderViewPage from 'containers/pages/Admin/OrderViewPage';
 import ProfilePage from 'containers/pages/Common/ProfilePage';
+import CustomerListPage from 'containers/pages/Admin/CustomerListPage';
 
 const AdminRoutes = [
   <Route key="/admin" exact path="/admin" replace element={<Navigate to="dashboard" />} />,
   <Route key="/admin/dashboard" path="dashboard" element={<DashboardPage />} />,
   <Route key="/admin/authentication" path="authentication" element={<AuthenticationPage />} />,
   <Route key="/admin/product" path="product" element={<ProductListPage />} />,
+  <Route key="/admin/daftar-pelanggan" path="daftar-pelanggan" element={<CustomerListPage />} />,
   <Route key="/admin/product" path="product">
     <Route key="/admin/product/add" path="add" element={<ProductAddPage />} />
     <Route key="/admin/product/view" exact path="view" replace element={<Navigate to="./../" />} />

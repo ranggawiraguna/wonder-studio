@@ -2,6 +2,7 @@ import {
   IconDashboard,
   IconReport,
   IconTags,
+  IconUsers,
   IconAccessible,
   IconShoppingCart
 } from '@tabler/icons';
@@ -55,10 +56,17 @@ const adminSidebar = {
         },
         {
           id: 'authentication',
-          title: 'Autentikasi',
+          title: 'Authentikasi',
           type: 'item',
           url: '/admin/authentication',
           icon: IconAccessible
+        },
+        {
+          id: 'daftar-pelanggan',
+          title: 'Pelanggan',
+          type: 'item',
+          url: '/admin/daftar-pelanggan',
+          icon: IconUsers
         },
         {
           id: 'product',
