@@ -15,6 +15,7 @@ export default function FieldGroupView({ title, data, withFrame, type, ...props 
                 border: '3px solid rgba(136,136,136,0.25)',
                 padding: '10px',
                 borderRadius: '6px',
+                minHeight: '40px',
                 ...(() => (type ? { display: 'flex', gap: '5px' } : {}))()
               }
             : { marginTop: '5px', marginLeft: '2px' }

@@ -61,41 +61,7 @@ export default styled(Box)(({ theme }) => ({
     },
     '& > div:nth-of-type(3)': {
       flex: 1,
-      '&> div:last-of-type': {
-        '& > h4': {
-          color: '#666666',
-          marginLeft: '2px',
-          marginBottom: '5px'
-        },
-        '& > div': {
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: '5px',
-          gap: '10px',
-          '& > div': {
-            width: '25px',
-            height: '25px',
-            borderRadius: 1000,
-            outline: '1px solid rgba(0,0,0,0.2)',
-            '&:nth-of-type(2)': {
-              fontWeight: 'bold',
-              fontSize: 11,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: 'rgba(204,204,204,0.5)'
-            }
-          },
-          '& > h5': {
-            flex: 1,
-            marginLeft: '10px',
-            backgroundColor: 'white',
-            border: '3px solid rgba(136,136,136,0.25)',
-            padding: '10px',
-            borderRadius: '6px'
-          }
-        }
-      }
+     
     }
   },
 
@@ -165,7 +131,7 @@ export default styled(Box)(({ theme }) => ({
           marginBottom: '30px',
           flex: 1
         },
-        '& > div:nth-of-type(6)': {
+        '& > div:nth-of-type(8`)': {
           display: 'flex',
           gap: '30px',
           '& > div': {

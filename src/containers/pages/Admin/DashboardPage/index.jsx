@@ -5,7 +5,7 @@ import DashboardGrid from 'containers/templates/DashboardGrid';
 import IconBag from 'assets/images/icon/DashboardCardBag.png';
 import IconCoin from 'assets/images/icon/DashboardCardCoin.png';
 import PageRoot from './styled';
-import { collection, limit, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, limit, onSnapshot, query } from 'firebase/firestore';
 import { db } from 'config/firebase';
 import { orderProcess, orderType } from 'utils/other/EnvironmentValues';
 import { dateConverter } from 'utils/other/Services';
@@ -34,11 +34,11 @@ export default function StoreDashboard() {
       )
     );
 
-    const listenerProducts = onSnapshot(query(collection(db, 'products'), orderBy('sold', 'desc'), limit(5)), (snapshot) =>
+    const listenerProducts = onSnapshot(query(collection(db, 'products'), limit(5)), (snapshot) =>
       setProducts(
         snapshot.docs.map((document) => ({
           name: document.data().name,
-          amount: document.data().sold
+          amount: document.data().sold ?? 1
         }))
       )
     );

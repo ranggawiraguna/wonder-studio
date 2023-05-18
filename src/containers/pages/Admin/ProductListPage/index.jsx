@@ -1,7 +1,7 @@
 import { Button, CardMedia, ClickAwayListener, TableCell, TableRow, Typography } from '@mui/material';
 import { Box } from '@mui/system';
 import { Fragment, useEffect, useState } from 'react';
-import { tableDisplayType } from 'utils/other/EnvironmentValues';
+import { defaultProductImage, tableDisplayType } from 'utils/other/EnvironmentValues';
 import IconOptiontDetail from 'assets/images/icon/ProductOptionDetail.svg';
 import TableDisplay from 'containers/templates/TableDisplay';
 import PageRoot from './styled';
@@ -14,8 +14,8 @@ import { moneyFormatter } from 'utils/other/Services';
 import AlertToast from 'components/elements/AlertToast';
 import { deleteObject, ref } from 'firebase/storage';
 
-const tableHeadContent = ['Foto', 'Id & Nama Produk', 'Stok', 'Harga', ''];
-const tableAlignContent = ['center', 'left', 'left', 'left', 'right'];
+const tableHeadContent = ['Foto', 'Id & Nama Produk', 'Harga', ''];
+const tableAlignContent = ['center', 'left', 'left', 'right'];
 
 export default function ProductListPage() {
   const navigate = useNavigate();
@@ -103,7 +103,7 @@ export default function ProductListPage() {
                         height: 60,
                         backgroundColor: 'lightgrey',
                         borderRadius: '5px',
-                        backgroundImage: `url(${product.images[0]})`,
+                        backgroundImage: `url(${product.images ? product.images[0] : defaultProductImage})`,
                         backgroundRepeat: 'no-repeat',
                         backgroundSize: 'cover',
                         backgroundPosition: 'center'
@@ -120,15 +120,10 @@ export default function ProductListPage() {
                   </TableCell>
                   <TableCell align={tableAlignContent[2]}>
                     <Typography variant="h5" component="h5" fontWeight="bold">
-                      -
-                    </Typography>
-                  </TableCell>
-                  <TableCell align={tableAlignContent[3]}>
-                    <Typography variant="h5" component="h5" fontWeight="bold">
                       {product.price ? moneyFormatter(product.price) : '-'}
                     </Typography>
                   </TableCell>
-                  <TableCell align={tableAlignContent[4]}>
+                  <TableCell align={tableAlignContent[3]}>
                     <ClickAwayListener
                       mouseEvent="onMouseDown"
                       touchEvent="onTouchStart"
@@ -188,7 +183,7 @@ export default function ProductListPage() {
                                         })
                                         .then(() => {
                                           for (let i = 0; i < 3; i++) {
-                                            deleteObject(ref(storage, `product-photos/${product.id}-${i + 1}`)).catch(() => {});
+                                            deleteObject(ref(storage, `product-images/${product.id}-${i + 1}`)).catch(() => {});
                                           }
                                           showAlertToast('success', 'Berhasil menghapus produk');
                                           setIsDeleteProcess(false);

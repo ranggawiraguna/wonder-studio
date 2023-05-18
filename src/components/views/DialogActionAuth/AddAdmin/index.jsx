@@ -28,6 +28,7 @@ import { addDoc, collection, getDocs, limit, query, where } from 'firebase/fires
 import { db, otherAuth, storage } from 'config/firebase';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { createUserWithEmailAndPassword, deleteUser, signOut, updateProfile } from 'firebase/auth';
+import { validate } from 'react-email-validator';
 
 const DialogAddAdmin = forwardRef(({ open, onClose, ...others }, reference) => {
   const theme = useTheme();
@@ -85,8 +86,9 @@ const DialogAddAdmin = forwardRef(({ open, onClose, ...others }, reference) => {
         const emailAlreadyExists =
           !(await getDocs(query(collection(db, 'admins'), where('email', '==', inputValues.email.toLowerCase()), limit(1)))).empty ||
           !(await getDocs(query(collection(db, 'customers'), where('email', '==', inputValues.email.toLowerCase()), limit(1)))).empty;
+        const emailInvalid = !validate("test@email.com");
 
-        if (!usernameAlreadyExists && !emailAlreadyExists) {
+        if (!usernameAlreadyExists && !emailAlreadyExists && !emailInvalid) {
           let photoUrl = '';
           const profileRef = ref(storage, `/admin-profiles/${inputValues.username}`);
           try {
@@ -131,6 +133,9 @@ const DialogAddAdmin = forwardRef(({ open, onClose, ...others }, reference) => {
           setIsAddAdminProcess(false);
         } else if (emailAlreadyExists) {
           showAlertToast('warning', 'Email telah digunakan pada akun lain');
+          setIsAddAdminProcess(false);
+        } else if(emailInvalid){
+          showAlertToast('warning', 'Email yang dimasukkan tidak valid');
           setIsAddAdminProcess(false);
         }
       } else {

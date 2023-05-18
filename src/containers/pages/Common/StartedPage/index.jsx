@@ -61,17 +61,17 @@ export default function StartedPage() {
   const listContact = [
     {
       title: 'Telepon',
-      description: '0812-8056-6304',
+      description: '021-8791-4104',
       icon: IconPhone
     },
     {
       title: 'WhatsApp',
-      description: '0812-8056-6304',
+      description: '0859-6728-1635',
       icon: IconWhatsApp
     },
     {
       title: 'Gmail',
-      description: 'dimasrahmat503@gmail.com',
+      description: 'cibinong.wonder@gmail.com',
       icon: IconGmail
     }
   ];
@@ -265,7 +265,7 @@ export default function StartedPage() {
             onClick={() => {
               switch (accountReducer.role) {
                 case 'admin':
-                  return navigate('/customer/product');
+                  return navigate('/admin/product');
 
                 case 'customer':
                   return navigate('/customer/dashboard');

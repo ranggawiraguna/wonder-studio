@@ -45,7 +45,7 @@ export default function ProductViewPage() {
     colors: [],
     description: '',
     name: '',
-    photos: ['', '', ''],
+    images: ['', '', ''],
     price: 0,
     rating: 5,
     sizes: [],
@@ -55,22 +55,6 @@ export default function ProductViewPage() {
 
   const [imageBackdrop, setImageBackdrop] = useState('');
   const [openImageBackdrop, setOpenImageBackdrop] = useState(false);
-
-  const getCategoryName = (category) => {
-    switch (category) {
-      case 'classic':
-        return 'Klasik';
-
-      case 'motive':
-        return 'Motif';
-
-      case 'modern':
-        return 'Modern';
-
-      default:
-        return '';
-    }
-  };
 
   useEffect(() => {
     if (!(sidebarReducer.isOpen.findIndex((id) => id === 'product') > -1)) {
@@ -117,7 +101,7 @@ export default function ProductViewPage() {
                     })
                     .then(() => {
                       for (let i = 0; i < 3; i++) {
-                        deleteObject(ref(storage, `product-photos/${params.id}-${i + 1}`)).catch(() => {});
+                        deleteObject(ref(storage, `product-images/${params.id}-${i + 1}`)).catch(() => {});
                       }
                       navigate('/admin/product');
                       setIsDeleteProcess(false);
@@ -174,34 +158,24 @@ export default function ProductViewPage() {
           <Box>
             <FieldGroupView withFrame title="ID Produk" data={product.id} />
             <FieldGroupView withFrame title="Nama Produk" data={product.name} sx={{ marginBottom: '30px' }} />
-            <FieldGroupView withFrame title="Kategori" data={getCategoryName(product.category)} sx={{ marginBottom: '30px' }} />
             <FieldGroupView withFrame title="Deskripsi" data={product.description} sx={{ marginBottom: '30px' }} />
+            <FieldGroupView withFrame title="Satuan Jumlah" data={product.uom} sx={{ marginBottom: '30px' }} />
+            <FieldGroupView withFrame title="Minimal Order" data={product.minimalOrder} sx={{ marginBottom: '30px' }} />
             <FieldGroupView withFrame title="Harga" data={product.price} sx={{ marginBottom: '30px' }} />
+            <FieldGroupView withFrame type="color" title="Warna" data={product.colors} sx={{ marginBottom: '30px' }} />
             <Box>
-              <FieldGroupView withFrame type="color" title="Warna" data={product.colors} sx={{ marginBottom: '30px' }} />
-              <FieldGroupView withFrame type="size" title="Ukuran" data={product.sizes} sx={{ marginBottom: '30px' }} />
+              {(product.models ?? []).length > 0 ? (
+                <FieldGroupView withFrame type="model" title="Model" data={product.models} sx={{ marginBottom: '30px' }} />
+              ) : (
+                <></>
+              )}
+              {(product.models ?? []).length > 0 ? (
+                <FieldGroupView withFrame type="size" title="Ukuran" data={product.sizes} sx={{ marginBottom: '30px' }} />
+              ) : (
+                <></>
+              )}
             </Box>
-            <FieldGroupView withFrame title="Terjual" data={product.sold} sx={{ marginBottom: '30px' }} />
-            <Box>
-              <Typography variant="h4" component="h4">
-                Stok Produk
-              </Typography>
-              {(() => {
-                return product.stocks != null ? (
-                  product.stocks.map((stock, index) => (
-                    <Box key={index}>
-                      <Box sx={{ backgroundColor: stock.color }} />
-                      <Box>{stock.size}</Box>
-                      <Typography variant="h5" component="h5">
-                        {stock.count}
-                      </Typography>
-                    </Box>
-                  ))
-                ) : (
-                  <></>
-                );
-              })()}
-            </Box>
+            <FieldGroupView withFrame title="Terjual" data={product.sold} />
           </Box>
         </Box>
       </PageRoot>

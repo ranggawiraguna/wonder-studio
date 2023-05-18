@@ -193,7 +193,7 @@ export default styled(Box)(({ theme }) => ({
         }
       }
     },
-    '&:nth-of-type(4), &:nth-of-type(8), &:nth-of-type(9)': {
+    '&:nth-of-type(4), &:nth-of-type(8)': {
       '& > .dashboard-item': {
         backgroundColor: 'white',
         display: 'grid',
@@ -392,72 +392,6 @@ export default styled(Box)(({ theme }) => ({
           }
         }
       }
-    },
-    '&:nth-of-type(10), &:nth-of-type(11)': {
-      '& > .dashboard-item': {
-        backgroundColor: '#25344B',
-        display: 'grid',
-        gridTemplateAreas: `
-          "A A A"
-          "B B B"
-          "C D G"
-          "E F G"
-        `,
-        gridTemplateColumns: 'auto auto auto',
-        gridTemplateRows: 'auto 1fr auto auto auto',
-        alignItems: 'center',
-        padding: 20,
-
-        '& > div': {
-          '&:nth-of-type(1)': {
-            alignSelf: 'center',
-            '& > h2': {
-              textAlign: 'center',
-              color: 'white'
-            }
-          },
-          '&:nth-of-type(2)': {
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingBottom: 20,
-            paddingTop: 20
-          },
-          '&:nth-of-type(3), &:nth-of-type(5)': {
-            margin: '7px 10px',
-            justifySelf: 'flex-end',
-            width: 15,
-            height: 15,
-            borderRadius: 2,
-            outline: '1px solid white'
-          },
-          '&:nth-of-type(4), &:nth-of-type(6)': {
-            '& > h4': {
-              color: 'white',
-              fontSize: 15
-            }
-          },
-          '&:nth-of-type(7)': {
-            justifySelf: 'flex-start',
-            '& > button': {
-              minWidth: 0,
-              minHeight: 0,
-              width: 35,
-              height: 35,
-              backgroundColor: 'rgba(255,255,255,0.5)',
-              boxShadow: '0 0 3px 2px rgba(255,255,255,0.25)',
-              borderRadius: 8,
-              padding: 0,
-              '& > img': {
-                minWidth: 0,
-                minHeight: 0,
-                height: 18,
-                width: 'auto'
-              }
-            }
-          }
-        }
-      }
     }
   },
 
@@ -474,9 +408,6 @@ export default styled(Box)(({ theme }) => ({
       "F F"
       "H H"
       "G G"
-      "I I"
-      "J J"
-      "K K"
     `
   },
   [theme.breakpoints.only('xs')]: {
@@ -617,8 +548,6 @@ export default styled(Box)(({ theme }) => ({
       "B G E E"
       "C G F F"
       "H H H H"
-      "I I I I"
-      "J J K K"
     `,
     '& > div': {
       '&:nth-of-type(1)': {
@@ -692,7 +621,6 @@ export default styled(Box)(({ theme }) => ({
       "D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D E E E E E E E E E E E E E E E E E E"
       "D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D D F F F F F F F F F F F F F F F F F F"
       "G G G G G G G G G G G G G G G G G G H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H H"
-      "I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I J J J J J J J J J J J J J J J J K K K K K K K K K K K K K K K K"
     `,
 
     '& > div': {

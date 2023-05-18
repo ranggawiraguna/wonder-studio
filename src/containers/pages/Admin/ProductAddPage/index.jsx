@@ -1,35 +1,26 @@
-import {
-  Box,
-  Button,
-  CardMedia,
-  ClickAwayListener,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  OutlinedInput,
-  Select,
-  Typography
-} from '@mui/material';
+import { Box, Button, CardMedia, FilledInput, FormControl, InputAdornment, InputLabel, OutlinedInput, Typography } from '@mui/material';
 import { db, storage } from 'config/firebase';
 import { collection, doc, setDoc } from 'firebase/firestore';
 import { Fragment, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { defaultProductImage, sizeAvailable } from 'utils/other/EnvironmentValues';
+import { defaultProductImage } from 'utils/other/EnvironmentValues';
 import IconClose from 'assets/images/icon/CloseCircle.svg';
 import IconAdd from 'assets/images/icon/AddCircle.svg';
 import PageRoot from './styled';
 import ColorPicker from 'components/elements/ColorPicker';
-import { motion } from 'framer-motion';
 import AlertToast from 'components/elements/AlertToast';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import DialogSingleForm from 'components/views/DialogOthers/DialogSingleForm';
+import { stringCapitalize } from 'utils/other/Services';
 
 export default function ProductAddPage() {
   const navigate = useNavigate();
 
   const [isAddProcess, setIsAddProcess] = useState(false);
+  const [isOpenDialogAddModel, setIsOpenDialogAddModel] = useState(false);
+  const [isOpenDialogAddSize, setIsOpenDialogAddSize] = useState(false);
 
   const [openColorPicker, setOpenColorPicker] = useState(false);
-  const [openClickawaySize, setOpenClickawaySize] = useState(false);
 
   const [selectedImage, setSelectedImage] = useState([null, null, null]);
   const [selectedImageUrl, setSelectedImageUrl] = useState([defaultProductImage, defaultProductImage, defaultProductImage]);
@@ -42,66 +33,68 @@ export default function ProductAddPage() {
   });
 
   const [product, setProduct] = useState({
-    category: '',
     colors: [],
+    models: [],
     description: '',
+    uom: '',
     name: '',
-    photos: ['', '', ''],
+    images: ['', '', ''],
     price: 0,
+    prices: [],
+    minimalOrder: 0,
     rating: 0,
-    productionHistory: [],
-    sizes: [],
-    sold: 0,
-    stocks: []
+    sizes: []
   });
 
   const handleAddProduct = async () => {
     if (!isAddProcess) {
       if (
-        (product.name !== '' &&
-          product.category !== '' &&
-          product.description !== '' &&
-          product.price > 0 &&
-          product.colors.length > 0 &&
-          product.sizes.length > 0,
-        product.stocks.length > 0)
+        product.name !== '' &&
+        product.description !== '' &&
+        product.uom !== '' &&
+        product.minimalOrder > 0 &&
+        (product.price > 0 || product.prices.isNotEmpty)
       ) {
         setIsAddProcess(true);
 
-        const reference = doc(collection(db, 'products'));
-        const referenceId = reference.id;
+        let data = { ...product };
 
-        let photos = [];
+        const reference = doc(collection(db, 'products'));
+
+        let images = [];
         let storageRef = [];
         for (let i = 0; i < 3; i++) {
           if (selectedImage[i] !== null) {
             let photoUrl;
             try {
-              storageRef.push(ref(storage, `/product-photos/${referenceId}-${i + 1}`));
+              storageRef.push(ref(storage, `/product-images/${reference.id}-${i + 1}`));
               const snapshot = await uploadBytes(storageRef[storageRef.length - 1], selectedImage[i]);
               photoUrl = await getDownloadURL(snapshot.ref);
             } catch (e) {
               photoUrl = defaultProductImage;
               showAlertToast('warning', 'Terjadi kesalahan saat mengupload foto');
             }
-            photos = [...photos, photoUrl];
+            images = [...images, photoUrl];
           } else {
-            photos = [...photos, defaultProductImage];
+            images = [...images, defaultProductImage];
           }
         }
 
+        if ([data.models ?? []].length > 0 || [data.sizes ?? []].length > 0) {
+          delete data.price;
+          data = { ...data, prices: data.prices};
+        } else {
+          delete data.prices;
+          data = { ...data, price: data.price};
+        }
+        if (data.models?.length === 0 && data.sizes?.length === 0) {
+          delete data.models;
+          delete data.sizes;
+        }
+
         setDoc(reference, {
-          ...product,
-          photos: photos,
-          productionHistory:
-            product.stocks.reduce((a, b) => a + b.count, 0) > 0
-              ? [
-                  {
-                    dateCreated: new Date(),
-                    amount: product.stocks.reduce((a, b) => a + b.count, 0)
-                  }
-                ]
-              : product.productionHistory
+          ...data,
+          images: images
         })
           .catch(() => {
             for (let refStorage in storageRef) {
@@ -111,26 +104,26 @@ export default function ProductAddPage() {
             setIsAddProcess(false);
           })
           .then(() => {
-            showAlertToast('success', 'Berhasil memperbarui informasi produk');
+            showAlertToast('success', 'Berhasil menambahkan produk');
             setTimeout(() => {
-              navigate(`/admin/product/view/${referenceId}`);
+              navigate(`/admin/product/view/${reference.id}`);
 
               for (let image of selectedImage) {
                 if (image !== null) URL.revokeObjectURL(image);
               }
               setSelectedImage([null, null, null]);
               setProduct({
-                category: '',
                 colors: [],
+                models: [],
                 description: '',
+                uom: '',
                 name: '',
-                photos: ['', '', ''],
+                images: ['', '', ''],
                 price: 0,
+                prices: [],
+                minimalOrder: 0,
                 rating: 0,
-                productionHistory: [],
-                sizes: [],
-                sold: 0,
-                stocks: []
+                sizes: []
               });
               setIsAddProcess(false);
             }, 2000);
@@ -174,51 +167,49 @@ export default function ProductAddPage() {
     setProduct({ ...product, [prop]: value });
   };
 
+  const handleAddModel = (selectedModel) => {
+    if (selectedModel && !product.models?.includes(selectedModel.toLowerCase().trim())) {
+      setProduct({
+        ...product,
+        models: [...product.models, selectedModel.toLowerCase().trim()]
+      });
+    }
+  };
+
+  const handleDeleteModel = (selectedModel) => {
+    setProduct({
+      ...product,
+      models: [...product.models?.filter((model) => model !== selectedModel)]
+    });
+  };
+
   const handleAddColor = (selectedColor) => {
     setProduct({
       ...product,
-      colors: [...product.colors, selectedColor],
-      stocks: [...product.stocks, ...product.sizes.map((size) => ({ color: selectedColor, size: size, count: 0 }))]
+      colors: [...product.colors, selectedColor]
     });
   };
 
   const handleDeleteColor = (selectedColor) => {
     setProduct({
       ...product,
-      colors: [...product.colors.filter((color) => color !== selectedColor)],
-      stocks: [...product.stocks.filter((stock) => stock.color !== selectedColor)]
+      colors: [...product.colors?.filter((color) => color !== selectedColor)]
     });
   };
 
   const handleAddSize = (selectedSize) => {
-    let tempSizes = [...product.sizes, selectedSize];
-    tempSizes = [...sizeAvailable.filter((size) => tempSizes.includes(size))];
-
-    setProduct({
-      ...product,
-      sizes: tempSizes,
-      stocks: [
-        ...product.colors.map((color) =>
-          tempSizes.map((size) => {
-            const stock = product.stocks.find((stock) => stock.color === color && stock.size === size);
-            return stock
-              ? stock
-              : {
-                  color: color,
-                  size: size,
-                  count: 0
-                };
-          })
-        )
-      ].reduce((a, b) => [...a, ...b], [])
-    });
+    if (selectedSize && !product.models?.includes(selectedSize.toLowerCase().trim())) {
+      setProduct({
+        ...product,
+        sizes: [...product.sizes, selectedSize.toLowerCase().trim()]
+      });
+    }
   };
 
   const handleDeleteSize = (selectedSize) => {
     setProduct({
       ...product,
-      sizes: [...product.sizes.filter((size) => size !== selectedSize)],
-      stocks: [...product.stocks.filter((stock) => stock.size !== selectedSize)]
+      sizes: [...product.sizes?.filter((size) => size !== selectedSize)]
     });
   };
 
@@ -235,7 +226,7 @@ export default function ProductAddPage() {
       <PageRoot>
         <Box>
           <Typography variant="h3" component="h3">
-            Data Produk (Edit)
+            Data Produk (Tambah)
           </Typography>
           <Button variant="contained" onClick={handleAddProduct}>
             Tambahkan Produk
@@ -296,14 +287,6 @@ export default function ProductAddPage() {
                 sx={{ marginBottom: '30px' }}
               />
             </FormControl>
-            <FormControl fullWidth sx={{ marginBottom: '30px' }}>
-              <InputLabel>Kategori</InputLabel>
-              <Select value={product.category} label="Kategori" onChange={handleChangeInput('category')}>
-                <MenuItem value={'classic'}>Klasik</MenuItem>
-                <MenuItem value={'modern'}>Modern</MenuItem>
-                <MenuItem value={'motive'}>Motif</MenuItem>
-              </Select>
-            </FormControl>
             <FormControl variant="outlined" className="input" fullWidth>
               <InputLabel htmlFor="InputDeskripsi">Deskripsi</InputLabel>
               <OutlinedInput
@@ -318,183 +301,245 @@ export default function ProductAddPage() {
               />
             </FormControl>
             <FormControl variant="outlined" className="input" fullWidth>
-              <InputLabel htmlFor="InputHarga">Harga</InputLabel>
+              <InputLabel htmlFor="InputSatuanJumlah">Satuan Jumlah</InputLabel>
               <OutlinedInput
-                id="InputHarga"
-                type="number"
-                value={product.price > 0 ? product.price.toString().replace(/^0+/, '') : 0}
-                onChange={handleChangeInput('price')}
-                label="Harga"
+                id="InputSatuanJumlah"
+                type="text"
+                value={product.uom}
+                onChange={handleChangeInput('uom')}
+                label="Minimal Order"
                 autoComplete="off"
                 sx={{ marginBottom: '30px' }}
               />
             </FormControl>
-            <Box>
-              <Typography variant="h4" component="h4">
-                Warna
-              </Typography>
+            <FormControl variant="outlined" className="input" fullWidth>
+              <InputLabel htmlFor="InputMinimalOrder">Minimal Order</InputLabel>
+              <OutlinedInput
+                id="InputMinimalOrder"
+                type="number"
+                value={product.minimalOrder > 0 ? product.minimalOrder.toString().replace(/^0+/, '') : 0}
+                onChange={handleChangeInput('minimalOrder')}
+                label="Minimal Order"
+                autoComplete="off"
+                sx={{ marginBottom: '30px' }}
+              />
+            </FormControl>
+            {product.sizes?.length === 0 && product.models?.length === 0 ? (
+              <FormControl variant="outlined" className="input" fullWidth>
+                <InputLabel htmlFor="InputHarga">Harga</InputLabel>
+                <OutlinedInput
+                  id="InputHarga"
+                  type="number"
+                  value={product.price > 0 ? product.price.toString().replace(/^0+/, '') : 0}
+                  onChange={handleChangeInput('price')}
+                  label="Harga"
+                  autoComplete="off"
+                  sx={{ marginBottom: '30px' }}
+                />
+              </FormControl>
+            ) : (
+              <></>
+            )}
+            <Box className="value-list">
               <Box>
-                {(() => {
-                  return product.colors.map((color, index) => {
-                    return (
-                      <Box key={index}>
-                        <Box sx={{ backgroundColor: color }} />
-                        <Button onClick={() => handleDeleteColor(color)}>
-                          <CardMedia component="img" src={IconClose} />
-                        </Button>
-                      </Box>
-                    );
-                  });
-                })()}
+                <Typography variant="h4" component="h4">
+                  Warna
+                </Typography>
                 <Box>
-                  <Button onClick={() => setOpenColorPicker(true)}>
-                    <CardMedia component="img" src={IconAdd} />
-                  </Button>
+                  {(() => {
+                    return product.colors?.map((color, index) => {
+                      return (
+                        <Box key={index}>
+                          <Box sx={{ backgroundColor: color }} />
+                          <Button onClick={() => handleDeleteColor(color)}>
+                            <CardMedia component="img" src={IconClose} />
+                          </Button>
+                        </Box>
+                      );
+                    });
+                  })()}
+                  <Box>
+                    <Button onClick={() => setOpenColorPicker(true)}>
+                      <CardMedia component="img" src={IconAdd} />
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
+              <Box>
+                <Typography variant="h4" component="h4">
+                  Jenis
+                </Typography>
+                <Box>
+                  {(() => {
+                    return product.models?.map((model, index) => {
+                      return (
+                        <Box key={index}>
+                          <Box
+                            sx={{
+                              backgroundColor: 'white',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center'
+                            }}
+                          >
+                            <Typography sx={{ fontWeight: 'bold', fontSize: '12px' }}>{stringCapitalize(model)}</Typography>
+                          </Box>
+                          <Button onClick={() => handleDeleteModel(model)}>
+                            <CardMedia component="img" src={IconClose} />
+                          </Button>
+                        </Box>
+                      );
+                    });
+                  })()}
+                  <Box>
+                    <Button onClick={() => setIsOpenDialogAddModel(true)}>
+                      <CardMedia component="img" src={IconAdd} />
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
+              <Box>
+                <Typography variant="h4" component="h4">
+                  Ukuran
+                </Typography>
+                <Box>
+                  {(() => {
+                    return product.sizes?.map((size, index) => {
+                      return (
+                        <Box key={index}>
+                          <Box
+                            sx={{
+                              backgroundColor: 'white',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center'
+                            }}
+                          >
+                            <Typography sx={{ fontWeight: 'bold', fontSize: '12px' }}>{stringCapitalize(size)}</Typography>
+                          </Box>
+                          <Button onClick={() => handleDeleteSize(size)}>
+                            <CardMedia component="img" src={IconClose} />
+                          </Button>
+                        </Box>
+                      );
+                    });
+                  })()}
+                  <Box>
+                    <Button onClick={() => setIsOpenDialogAddSize(true)}>
+                      <CardMedia component="img" src={IconAdd} />
+                    </Button>
+                  </Box>
                 </Box>
               </Box>
             </Box>
-            <Box>
-              <Typography variant="h4" component="h4">
-                Ukuran
-              </Typography>
-              <Box>
-                {(() => {
-                  return product.sizes.map((size, index) => {
-                    return (
-                      <Box key={index}>
-                        <Box
-                          sx={{ backgroundColor: 'rgba(255,255,255,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                        >
-                          <Typography sx={{ fontWeight: 'bold', fontSize: '11px' }}>{size}</Typography>
-                        </Box>
-                        <Button onClick={() => handleDeleteSize(size)}>
-                          <CardMedia component="img" src={IconClose} />
-                        </Button>
-                      </Box>
-                    );
-                  });
-                })()}
-                <ClickAwayListener onClickAway={() => setOpenClickawaySize(false)}>
-                  <Box>
-                    <motion.div
-                      animate={openClickawaySize ? 'opened' : 'closed'}
-                      variants={{ opened: { rotate: 135, scale: 0.8 }, closed: { rotate: 0, scale: 1 } }}
-                    >
-                      <Button onClick={() => setOpenClickawaySize(!openClickawaySize)}>
-                        <CardMedia component="img" src={IconAdd} />
-                      </Button>
-                    </motion.div>
-                    {openClickawaySize ? (
-                      <motion.div
-                        animate={openClickawaySize ? 'opened' : 'closed'}
-                        variants={{
-                          opened: {
-                            opacity: 1,
-                            height: `${sizeAvailable.filter((size) => !product.sizes.includes(size)).length * 30 + 44}px`
-                          },
-                          closed: { opacity: 0, height: '0px' }
-                        }}
-                        style={{
-                          position: 'absolute',
-                          overflow: 'hidden',
-                          top: 0,
-                          right: 0,
-                          left: 0,
-                          zIndex: 1,
-                          borderRadius: 1000,
-                          paddingTop: '40px',
-                          display: 'flex',
-                          gap: '5px',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          backgroundColor: '#CAD9E3',
-                          paddingBottom: '8px'
-                        }}
-                      >
-                        {(() => {
-                          return sizeAvailable
-                            .filter((size) => !product.sizes.includes(size))
-                            .map((size, index) => (
-                              <Typography
-                                key={index}
-                                variant="p"
-                                component="p"
-                                onClick={() => {
-                                  setOpenClickawaySize(false);
-                                  handleAddSize(size);
-                                }}
-                                sx={{
-                                  cursor: 'pointer',
-                                  width: '25px',
-                                  height: '25px',
-                                  borderRadius: 1000,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  backgroundColor: 'rgba(255,255,255,0.5)',
-                                  fontSize: '11px',
-                                  fontWeight: 'bold'
-                                }}
-                              >
-                                {size}
-                              </Typography>
-                            ));
-                        })()}
-                      </motion.div>
-                    ) : null}
-                  </Box>
-                </ClickAwayListener>
-              </Box>
-            </Box>
-            <Box>
-              <Typography variant="h4" component="h4">
-                Stok Produk
-              </Typography>
-              {(() => {
-                return product.colors.map((color, i) => {
-                  return product.sizes.map((size, j) => {
-                    const stock = product.stocks.find((stock) => stock.color === color && stock.size === size);
-                    return (
-                      <Box key={`${i}${j}`}>
-                        <Box sx={{ backgroundColor: color }} />
-                        <Box>{size}</Box>
-                        <FormControl variant="outlined" className="input" fullWidth>
-                          <InputLabel htmlFor={`InputStok-${i}${j}`}>Jumlah</InputLabel>
-                          <OutlinedInput
-                            id={`InputStok-${i}${j}`}
-                            type="number"
-                            value={stock ? (stock.count > 0 ? stock.count.toString().replace(/^0+/, '') : stock.count) : 0}
-                            onChange={(e) => {
-                              const index = product.stocks.findIndex((stock) => stock.color === color && stock.size === size);
-                              let tempStock = [...product.stocks];
-                              tempStock[index] =
-                                index >= 0
-                                  ? {
-                                      ...tempStock[index],
-                                      count: parseInt(e.target.value.replace(/^0+/, '')) ? parseInt(e.target.value.replace(/^0+/, '')) : 0
-                                    }
-                                  : tempStock;
+            {(() => {
+              if (product.sizes?.length > 0 || product.models?.length > 0) {
+                let items = [];
+                if (product.sizes?.length > 0 && product.models?.length > 0) {
+                  for (let model of product.models) {
+                    if (product.sizes?.length > 0) {
+                      for (let size of product.sizes) {
+                        items.push([model, size]);
+                      }
+                    } else {
+                      items.push([model]);
+                    }
+                  }
+                } else {
+                  for (let item of product.models?.length > 0 ? product.models : product.sizes) {
+                    items.push([item]);
+                  }
+                }
 
-                              setProduct({
-                                ...product,
-                                stocks: tempStock
-                              });
-                            }}
-                            label="Jumlah"
-                            autoComplete="off"
-                            fullWidth
-                          />
-                        </FormControl>
+                return (
+                  <Box>
+                    <Typography variant="h4" component="h4" sx={{ color: '#666666', marginLeft: '2px', marginBottom: 1 }}>
+                      Daftar Harga
+                    </Typography>
+                    {items.map((item) => (
+                      <Box key={item} sx={{ marginBottom: 2 }}>
+                        <Box sx={{ display: 'flex' }}>
+                          {item.map((i) => (
+                            <Box
+                              key={i}
+                              sx={{
+                                backgroundColor: 'white',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                padding: '5px 15px',
+                                borderRadius: 1000,
+                                border: '1px solid rgba(0,0,0,0.1)',
+                                marginBottom: 1,
+                                alignItems: 'center'
+                              }}
+                            >
+                              <Typography sx={{ fontWeight: 'bold', fontSize: '12px' }}>{stringCapitalize(i)}</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                        <Box>
+                          <FormControl fullWidth variant="filled">
+                            <InputLabel>Harga</InputLabel>
+                            <FilledInput
+                              type="number"
+                              value={
+                                parseInt(product.prices?.find((price) => price.fields.join(',') === item.join(','))?.value || 0) > 0
+                                  ? product.prices?.find((price) => price.fields.join(',') === item.join(','))?.value.replace(/^0+/, '')
+                                  : 0
+                              }
+                              onChange={(_) => {
+                                const tempPrices = [...product.prices];
+                                const priceIndex = tempPrices.findIndex((price) => price.fields.join(',') === item.join(','));
+                                const value = _.target.value.replace(/^0+/, '');
+
+                                if (priceIndex >= 0) {
+                                  tempPrices[priceIndex].value = value;
+                                } else {
+                                  tempPrices.push({
+                                    fields: item,
+                                    value: value
+                                  });
+                                }
+
+                                console.log(value);
+
+                                setProduct({
+                                  ...product,
+                                  prices: [...tempPrices]
+                                });
+                              }}
+                              startAdornment={<InputAdornment position="start">Rp. </InputAdornment>}
+                            />
+                          </FormControl>
+                        </Box>
                       </Box>
-                    );
-                  });
-                });
-              })()}
-            </Box>
+                    ))}
+                  </Box>
+                );
+              } else {
+                return <></>;
+              }
+            })()}
           </Box>
         </Box>
       </PageRoot>
       <ColorPicker open={openColorPicker} onClose={() => setOpenColorPicker(false)} onConfirmed={handleAddColor} />
+      <DialogSingleForm
+        open={isOpenDialogAddModel}
+        onClose={() => setIsOpenDialogAddModel(false)}
+        onConfirmed={handleAddModel}
+        title="Masukkan Jenis Produk"
+        label="Jenis Produk"
+        type="text"
+      />
+      <DialogSingleForm
+        open={isOpenDialogAddSize}
+        onClose={() => setIsOpenDialogAddSize(false)}
+        onConfirmed={handleAddSize}
+        title="Masukkan Ukuran Produk"
+        label="Ukuran Produk"
+        type="text"
+      />
       <AlertToast description={alertDescription} setDescription={setAlertDescription} />
     </Fragment>
   );

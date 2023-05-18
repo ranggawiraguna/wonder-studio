@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfi
 import { addDoc, collection, doc, getDocs, limit, query, updateDoc, where } from 'firebase/firestore';
 import { auth, db, storage } from 'config/firebase';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { validate } from 'react-email-validator';
 
 export const paths = { admin: 'admins', customer: 'customers' };
 
@@ -131,14 +132,14 @@ export function registerSession(action) {
         showAlert('warning', 'Silahkan lengkapi form login dengan benar');
       } else if (action.data.username.length < 4 && action.data.username !== action.data.username.toLowerCase()) {
         showAlert('warning', 'Username harus terdiri dari huruf kecil dan minimal 4 karakter');
-      } else if (!action.data.email.toLowerCase().substring(action.data.email.length - 10, action.data.email.length) === '@gmail.com') {
-        showAlert('warning', 'Email yang dimasukkan tidak dapat digunakan');
       } else if (action.data.password.length < 8) {
         showAlert('warning', 'Password harus terdiri dari minimal 8 karakter');
       } else {
         let errorCheck = false;
         let emailAlreadyExists = false;
         let usernameAlreadyExists = false;
+        const emailInvalid = !validate("test@email.com");
+
         for (const path in paths) {
           try {
             const usernameSnapshot = await getDocs(query(collection(db, paths[path]), where('username', '==', action.data.username.toLowerCase()), limit(1)));
@@ -164,6 +165,8 @@ export function registerSession(action) {
           showAlert('warning', 'Username yang dimasukkan telah digunakan');
         } else if (emailAlreadyExists) {
           showAlert('warning', 'Email yang dimasukkan telah digunakan');
+        } else if(emailInvalid){
+          showAlert('warning', 'Email yang dimasukkan tidak valid');
         } else {
           try {
             const userCredential = await createUserWithEmailAndPassword(auth, action.data.email.toLowerCase(), action.data.password);
@@ -177,7 +180,7 @@ export function registerSession(action) {
             });
 
             await updateProfile(userCredential.user, {
-              displayName: action.data.toLowerCase()
+              displayName: action.data.username.toLowerCase()
             });
 
             await auth.signOut();
@@ -185,7 +188,7 @@ export function registerSession(action) {
             action.showAlertToast('success', 'Berhasil daftar akun');
             action.clearAuthForm();
           } catch (e) {
-            showAlert('warning', 'Terjadi kesalahan, silahkan coba lagi');
+            showAlert('warning', e.toString());
           }
         }
       }

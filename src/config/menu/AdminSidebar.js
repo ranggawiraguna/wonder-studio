@@ -1,5 +1,6 @@
 import {
   IconDashboard,
+  IconReport,
   IconTags,
   IconAccessible,
   IconShoppingCart
@@ -18,6 +19,39 @@ const adminSidebar = {
           type: 'item',
           url: '/admin/dashboard',
           icon: IconDashboard
+        },
+        {
+          id: 'report',
+          title: 'Laporan',
+          type: 'collapse',
+          icon: IconReport,
+
+          children: [
+            {
+              id: 'transaction',
+              title: 'Transaksi',
+              type: 'item',
+              url: '/store/transaction'
+            },
+            {
+              id: 'order-finished',
+              title: 'Pemesanan',
+              type: 'item',
+              url: '/store/order-finished'
+            },
+            {
+              id: 'revenue',
+              title: 'Pendapatan',
+              type: 'item',
+              url: '/store/revenue'
+            },
+            {
+              id: 'popular-product',
+              title: 'Produk Terlaris',
+              type: 'item',
+              url: '/store/popular-product'
+            },
+          ]
         },
         {
           id: 'authentication',

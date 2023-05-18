@@ -23,7 +23,7 @@ export default styled(Box)(({ theme }) => ({
   },
   '& > div:last-of-type': {
     display: 'flex',
-    '& > div:nth-of-type(2)': {
+    '& > div:nth-of-type(1)': {
       display: 'flex',
       flexDirection: 'column',
       gap: '20px',
@@ -84,107 +84,84 @@ export default styled(Box)(({ theme }) => ({
         }
       }
     },
-    '& > div:nth-of-type(3)': {
+    '& > div:nth-of-type(2)': {
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      '& > div:nth-of-type(6)': {
+      '& > div:nth-of-type(5)': {
         '& > div': {
-          '& > div:last-of-type': {
-            padding: '6px',
-            '& > button': {
-              padding: 0,
-              width: '29px',
-              height: '29px',
-              minWidth: 0,
-              borderRadius: 1000,
-              minheight: 0
-            }
-          }
-        }
-      },
-      '& > div:nth-of-type(7)': {
-        '& > div': {
-          '& > div': {
-            position: 'relative',
-            '& > div:first-of-type': {
-              position: 'relative',
-              zIndex: 2,
-              padding: '6px',
-              '& > button': {
-                padding: 0,
-                width: '29px',
-                height: '29px',
-                minWidth: 0,
-                borderRadius: 1000,
-                minheight: 0
-              }
-            }
-          }
-        }
-      },
-      '& > div:nth-of-type(6), & > div:nth-of-type(7)': {
-        '& > h4': {
-          color: '#666666',
-          marginLeft: '2px',
-          marginBottom: '10px'
-        },
-        '& > div': {
-          display: 'flex',
-          flexWrap: 'wrap',
-          width: '100%',
-          gap: '10px',
-          marginBottom: '20px',
-          '& > div': {
-            backgroundColor: '#CAD9E3',
-            borderRadius: 1000,
-            display: 'flex',
-            gap: '5px',
-            marginBottom: '10px',
-            alignItems: 'center',
-            '&:not(:last-of-type)': {
-              padding: '8px',
-              '& > div': {
-                width: '25px',
-                height: '25px',
-                borderRadius: 1000
-              },
-              '& > button': {
-                padding: 0,
-                width: '18px',
-                height: '18px',
-                minWidth: 0,
-                minheight: 0,
-                borderRadius: 1000
-              }
-            }
-          }
-        }
-      },
-      '& > div:nth-of-type(8)': {
-        '& > h4': {
-          color: '#666666',
-          marginLeft: '2px',
-          marginBottom: '20px'
-        },
-        '& > div': {
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: '20px',
-          gap: '10px',
-          '& > div:nth-of-type(1), & > div:nth-of-type(2)': {
-            width: '25px',
-            height: '25px',
-            borderRadius: 1000,
-            outline: '1px solid rgba(0,0,0,0.2)'
+          '& > div:not(:last-of-type)': {
+            '& > div': {
+              width: '25px',
+            },
           },
-          '& > div:nth-of-type(2)': {
-            fontWeight: 'bold',
-            fontSize: 11,
+        }
+      },
+      '& > .value-list':{
+        '& > div:nth-of-type(1)': {
+          '& > div': {
+            '& > div:not(:last-of-type)': {
+              '& > div': {
+                width: '25px'
+              },
+            },
+          }
+        },
+        '& > div:nth-of-type(2), & > div:nth-of-type(3)': {
+          '& > div': {
+            '& > div:not(:last-of-type)': {
+              '& > div': {
+                padding: '0 15px'
+              },
+            },
+          }
+        },
+        '& > div:nth-of-type(1), & > div:nth-of-type(2), & > div:nth-of-type(3)': {
+          '& > h4': {
+            color: '#666666',
+            marginLeft: '2px',
+            marginBottom: '10px'
+          },
+          '& > div': {
             display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(204,204,204,0.5)'
+            flexWrap: 'wrap',
+            width: '100%',
+            gap: '10px',
+            marginBottom: '20px',
+            '& > div': {
+              backgroundColor: '#CAD9E3',
+              borderRadius: 1000,
+              display: 'flex',
+              gap: '2px',
+              marginBottom: '10px',
+              alignItems: 'center',
+              '&:not(:last-of-type)': {
+                padding: '4px',
+                '& > div': {
+                  borderRadius: 1000,
+                  height: '25px',
+                },
+                '& > button': {
+                  padding: 0,
+                  width: '18px',
+                  height: '18px',
+                  minWidth: 0,
+                  minheight: 0,
+                  borderRadius: 1000
+                }
+              },
+              '&:last-of-type': {
+                padding: '4px',
+                '& > button': {
+                  padding: 0,
+                  width: '25px',
+                  height: '25px',
+                  minWidth: 0,
+                  borderRadius: 1000,
+                  minheight: 0
+                }
+              }
+            }
           }
         }
       }
@@ -200,10 +177,6 @@ export default styled(Box)(({ theme }) => ({
       gap: 30,
 
       '& > div:nth-of-type(1)': {
-        display: 'block',
-        flex: 1
-      },
-      '& > div:nth-of-type(2)': {
         gap: '5px',
         '& > div:nth-of-type(1)': {
           flexDirection: 'row',
@@ -227,11 +200,6 @@ export default styled(Box)(({ theme }) => ({
             borderRadius: '6px'
           }
         }
-      },
-      '& > div:nth-of-type(3)': {
-        '& > div:nth-of-type(1)': {
-          display: 'none'
-        }
       }
     }
   },
@@ -244,18 +212,8 @@ export default styled(Box)(({ theme }) => ({
       gap: 50,
 
       '& > div:nth-of-type(1)': {
-        display: 'none'
-      },
-      '& > div:nth-of-type(2)': {
         '& > div:nth-of-type(1)': {
           flexDirection: 'column'
-        }
-      },
-      '& > div:nth-of-type(3)': {
-        '& > div:nth-of-type(1)': {
-          display: 'block',
-          marginBottom: '30px',
-          flex: 1
         }
       }
     }

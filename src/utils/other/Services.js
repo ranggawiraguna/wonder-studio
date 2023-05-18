@@ -38,4 +38,13 @@ const dateConverter = (value) => {
   }
 };
 
-export { moneyFormatter, dateFormatter, dateConverter };
+const stringCapitalize = (text) => {  
+  return text.toString().length > 0
+    ? text
+        .split(' ')
+        .map((_) => (_.toString().length > 0 ? _[0].toUpperCase() + (_.length > 1 ? _.substring(1) : '') : ''))
+        .join(' ')
+    : '';
+};
+
+export { moneyFormatter, dateFormatter, dateConverter, stringCapitalize };
