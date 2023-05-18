@@ -120,7 +120,16 @@ export default function ProductListPage() {
                   </TableCell>
                   <TableCell align={tableAlignContent[2]}>
                     <Typography variant="h5" component="h5" fontWeight="bold">
-                      {product.price ? moneyFormatter(product.price) : '-'}
+                      {product.price
+                        ? moneyFormatter(product.price)
+                        : product.prices
+                        ? (() => {
+                            const listPrice = product.prices.map((_) => _.value);
+                            return listPrice.length > 1
+                              ? `${moneyFormatter(Math.min(...listPrice))}  s/d  ${moneyFormatter(Math.max(...listPrice))}`
+                              : moneyFormatter(listPrice[0] ?? 0);
+                          })()
+                        : '-'}
                     </Typography>
                   </TableCell>
                   <TableCell align={tableAlignContent[3]}>

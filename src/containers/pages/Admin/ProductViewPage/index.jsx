@@ -1,5 +1,12 @@
 import { useTheme } from '@emotion/react';
-import { Backdrop, Box, Button, Rating, Typography, useMediaQuery } from '@mui/material';
+import {
+  Backdrop,
+  Box,
+  Button,
+  Rating,
+  Typography,
+  useMediaQuery
+} from '@mui/material';
 import AlertToast from 'components/elements/AlertToast';
 import EmptyContent from 'components/elements/EmptyContent';
 import FieldGroupView from 'components/elements/FieldGroupView';
@@ -13,6 +20,7 @@ import { useNavigate, useParams } from 'react-router';
 import { defaultProductImage } from 'utils/other/EnvironmentValues';
 import { MENU_OPEN } from 'utils/redux/action';
 import PageRoot from './styled';
+import { moneyFormatter, stringCapitalize } from 'utils/other/Services';
 
 export default function ProductViewPage() {
   const dispatch = useDispatch();
@@ -161,7 +169,7 @@ export default function ProductViewPage() {
             <FieldGroupView withFrame title="Deskripsi" data={product.description} sx={{ marginBottom: '30px' }} />
             <FieldGroupView withFrame title="Satuan Jumlah" data={product.uom} sx={{ marginBottom: '30px' }} />
             <FieldGroupView withFrame title="Minimal Order" data={product.minimalOrder} sx={{ marginBottom: '30px' }} />
-            <FieldGroupView withFrame title="Harga" data={product.price} sx={{ marginBottom: '30px' }} />
+            <FieldGroupView withFrame title="Harga" data={product.price} sx={{ marginBottom: '30px', display: (product.models ?? []).length === 0 && (product.models ?? []).length === 0 ? 'block' : 'none' }} />
             <FieldGroupView withFrame type="color" title="Warna" data={product.colors} sx={{ marginBottom: '30px' }} />
             <Box>
               {(product.models ?? []).length > 0 ? (
@@ -169,13 +177,84 @@ export default function ProductViewPage() {
               ) : (
                 <></>
               )}
-              {(product.models ?? []).length > 0 ? (
+              {(product.sizes ?? []).length > 0 ? (
                 <FieldGroupView withFrame type="size" title="Ukuran" data={product.sizes} sx={{ marginBottom: '30px' }} />
               ) : (
                 <></>
               )}
             </Box>
-            <FieldGroupView withFrame title="Terjual" data={product.sold} />
+            {(() => {
+              if ((product.sizes ?? []).length > 0 || (product.models ?? []).length > 0) {
+                let items = [];
+                if ((product.sizes ?? []).length > 0 && (product.models ?? []).length > 0) {
+                  for (let model of product.models) {
+                    if ((product.sizes ?? []).length > 0) {
+                      for (let size of product.sizes) {
+                        items.push([model, size]);
+                      }
+                    } else {
+                      items.push([model]);
+                    }
+                  }
+                } else {
+                  for (let item of (product.models ?? []).length > 0 ? product.models : product.sizes) {
+                    items.push([item]);
+                  }
+                }
+
+                return (
+                  <Box>
+                    <Typography variant="h4" component="h4" sx={{ color: '#666666', marginLeft: '2px', marginBottom: 1 }}>
+                      Daftar Harga
+                    </Typography>
+                    {items.map((item, index) => (
+                      <Box key={item} sx={{ marginBottom: 2 }}>
+                        <Box sx={{ display: 'flex' }}>
+                          {item.map((i) => (
+                            <Box
+                              key={i}
+                              sx={{
+                                backgroundColor: 'white',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                padding: '5px 15px',
+                                borderRadius: 1000,
+                                border: '1px solid rgba(0,0,0,0.1)',
+                                marginBottom: 1,
+                                alignItems: 'center'
+                              }}
+                            >
+                              <Typography sx={{ fontWeight: 'bold', fontSize: '12px' }}>{stringCapitalize(i)}</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                        <Box
+                          sx={{
+                            backgroundColor: 'white',
+                            border: '3px solid rgba(136,136,136,0.25)',
+                            padding: '10px',
+                            borderRadius: '6px',
+                            minHeight: '40px'
+                          }}
+                        >
+                          <Typography variant="h5" component="h5">
+                            {moneyFormatter(
+                              parseInt((product.prices ?? []).find((price) => price.fields.join(',') === item.join(','))?.value || 0) > 0
+                                ? ((product.prices ?? []).find((price) => price.fields.join(',') === item.join(','))?.value || 0)
+                                    .toString()
+                                    .replace(/^0+/, '')
+                                : 0
+                            )}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                );
+              } else {
+                return <></>;
+              }
+            })()}
           </Box>
         </Box>
       </PageRoot>

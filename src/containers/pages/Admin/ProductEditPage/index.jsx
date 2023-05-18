@@ -93,14 +93,21 @@ export default function ProductEditPage() {
         }
 
         const dataDoc = await getDoc(doc(db, 'products', params.id));
-        if (((data.models ?? []).length > 0 || (data.sizes ?? []).length > 0) && dataDoc.get('price')) {
-          data = { ...data, price: deleteField(), prices: data.prices ?? [] };
-        } else if (dataDoc.get('prices')) {
-          data = { ...data, prices: deleteField(), price: data.price ?? 0 };
+        if (((product.models ?? []).length > 0 || (product.sizes ?? []).length > 0) && dataDoc.get('price')) {
+          data = { ...data, price: deleteField() };
+          setProduct({ ...product, price: 0 });
+        } else if ((product.models ?? []).length === 0 && (product.sizes ?? []).length === 0 && dataDoc.get('prices')) {
+          data = { ...data, prices: deleteField() };
+          setProduct({ ...product, prices: [] });
         }
-        if ((data.models ?? []).length === 0 && (data.sizes ?? []).length === 0) {
-          if (dataDoc.get('models')) delete data.models;
-          if (dataDoc.get('sizes')) delete data.sizes;
+
+        if ((product.models ?? []).length === 0 && dataDoc.get('models')) {
+          data = { ...data, models: deleteField() };
+          setProduct({ ...product, models: [] });
+        }
+        if ((product.sizes ?? []).length === 0 && dataDoc.get('sizes')) {
+          data = { ...data, sizes: deleteField() };
+          setProduct({ ...product, sizes: [] });
         }
 
         updateDoc(doc(db, 'products', params.id), { ...data })
@@ -332,7 +339,6 @@ export default function ProductEditPage() {
               <InputLabel htmlFor="InputMinimalOrder">Minimal Order</InputLabel>
               <OutlinedInput
                 id="InputMinimalOrder"
-                type="number"
                 value={product.minimalOrder > 0 ? product.minimalOrder.toString().replace(/^0+/, '') : 0}
                 onChange={handleChangeInput('minimalOrder')}
                 label="Minimal Order"
@@ -345,7 +351,6 @@ export default function ProductEditPage() {
                 <InputLabel htmlFor="InputHarga">Harga</InputLabel>
                 <OutlinedInput
                   id="InputHarga"
-                  type="number"
                   value={product.price > 0 ? product.price.toString().replace(/^0+/, '') : 0}
                   onChange={handleChangeInput('price')}
                   label="Harga"
@@ -497,34 +502,30 @@ export default function ProductEditPage() {
                           <FormControl fullWidth variant="filled">
                             <InputLabel>Harga</InputLabel>
                             <FilledInput
-                              type="number"
                               value={
                                 parseInt((product.prices ?? []).find((price) => price.fields.join(',') === item.join(','))?.value || 0) > 0
-                                  ? (product.prices ?? [])
-                                      .find((price) => price.fields.join(',') === item.join(','))
-                                      ?.value.replace(/^0+/, '')
+                                  ? ((product.prices ?? []).find((price) => price.fields.join(',') === item.join(','))?.value || 0).toString().replace(/^0+/, '')
                                   : 0
                               }
                               onChange={(_) => {
-                                const tempPrices = [...product.prices];
+                                const tempPrices = [...(product.prices ?? [])];
                                 const priceIndex = tempPrices.findIndex((price) => price.fields.join(',') === item.join(','));
-                                const value = _.target.value.replace(/^0+/, '');
+                                const value = (_.target.value ?? '').replace(/^0+/, '');
 
                                 if (priceIndex >= 0) {
-                                  tempPrices[priceIndex].value = value;
+                                  tempPrices[priceIndex].value = parseInt(value);
                                 } else {
                                   tempPrices.push({
                                     fields: item,
-                                    value: value
+                                    value: parseInt(value)
                                   });
                                 }
-
-                                console.log(value);
 
                                 setProduct({
                                   ...product,
                                   prices: [...tempPrices]
                                 });
+                                console.log(tempPrices);
                               }}
                               startAdornment={<InputAdornment position="start">Rp. </InputAdornment>}
                             />

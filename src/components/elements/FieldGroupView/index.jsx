@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import Component from './styled';
+import { stringCapitalize } from 'utils/other/Services';
 
 export default function FieldGroupView({ title, data, withFrame, type, ...props }) {
   return (
@@ -33,11 +34,11 @@ export default function FieldGroupView({ title, data, withFrame, type, ...props 
                 <Typography
                   key={index}
                   sx={{
-                    width: '20px',
                     height: '20px',
-                    borderRadius: 1000,
+                    borderRadius: 1,
                     fontWeight: 'bold',
-                    fontSize: 9,
+                    padding: '0 10px',
+                    fontSize: 12,
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
@@ -45,7 +46,7 @@ export default function FieldGroupView({ title, data, withFrame, type, ...props 
                     backgroundColor: 'rgba(204,204,204,0.5)'
                   }}
                 >
-                  {e}
+                  {stringCapitalize(e)}
                 </Typography>
               );
             })

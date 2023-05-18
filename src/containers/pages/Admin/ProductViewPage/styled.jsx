@@ -131,7 +131,7 @@ export default styled(Box)(({ theme }) => ({
           marginBottom: '30px',
           flex: 1
         },
-        '& > div:nth-of-type(8`)': {
+        '& > div:nth-of-type(8)': {
           display: 'flex',
           gap: '30px',
           '& > div': {

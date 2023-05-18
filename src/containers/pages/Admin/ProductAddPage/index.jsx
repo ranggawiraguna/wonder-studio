@@ -53,7 +53,7 @@ export default function ProductAddPage() {
         product.description !== '' &&
         product.uom !== '' &&
         product.minimalOrder > 0 &&
-        (product.price > 0 || product.prices.isNotEmpty)
+        (product.price > 0 || (product.prices ?? []).length > 0)
       ) {
         setIsAddProcess(true);
 
@@ -80,14 +80,12 @@ export default function ProductAddPage() {
           }
         }
 
-        if ([data.models ?? []].length > 0 || [data.sizes ?? []].length > 0) {
+        if ((data.models ?? []).length > 0 || (data.sizes ?? []).length > 0) {
           delete data.price;
-          data = { ...data, prices: data.prices};
         } else {
           delete data.prices;
-          data = { ...data, price: data.price};
         }
-        if (data.models?.length === 0 && data.sizes?.length === 0) {
+        if ((data.models ?? []).length === 0 && (data.sizes ?? []).length === 0) {
           delete data.models;
           delete data.sizes;
         }
@@ -483,12 +481,12 @@ export default function ProductAddPage() {
                             <FilledInput
                               type="number"
                               value={
-                                parseInt(product.prices?.find((price) => price.fields.join(',') === item.join(','))?.value || 0) > 0
-                                  ? product.prices?.find((price) => price.fields.join(',') === item.join(','))?.value.replace(/^0+/, '')
+                                parseInt((product.prices ??[]).find((price) => price.fields.join(',') === item.join(','))?.value || 0) > 0
+                                  ? (product.prices ?? []).find((price) => price.fields.join(',') === item.join(','))?.value.replace(/^0+/, '')
                                   : 0
                               }
                               onChange={(_) => {
-                                const tempPrices = [...product.prices];
+                                const tempPrices = [...(product.prices ?? [])];
                                 const priceIndex = tempPrices.findIndex((price) => price.fields.join(',') === item.join(','));
                                 const value = _.target.value.replace(/^0+/, '');
 
