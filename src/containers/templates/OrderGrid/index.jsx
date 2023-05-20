@@ -96,7 +96,7 @@ export default function OrderGrid({ data, type, isCompleteListener, isEmptySearc
                   Jumlah : {element.count}
                 </Typography>
                 <Typography gridArea="F" variant="p" component="p">
-                  {moneyFormatter(element.price)}
+                  {moneyFormatter(element.price ?? 0)}
                 </Typography>
               </Box>
               <Box>
@@ -113,14 +113,14 @@ export default function OrderGrid({ data, type, isCompleteListener, isEmptySearc
                   Total Pesanan :
                 </Typography>
                 <Typography gridArea="C" variant="p" component="p">
-                  {moneyFormatter(element.totalPrice)}
+                  {moneyFormatter(element.totalPrice ?? 0)}
                 </Typography>
               </Box>
               <hr />
               <Box gridTemplateAreas={`"A B ."`} gridTemplateColumns={'auto auto 1fr'}>
                 <CardMedia component="img" src={IconOrderStatus} />
                 <Typography gridArea="B" variant="p" component="p">
-                  {orderProcessDetail[element.processTracking[element.processTracking.length - 1].name].description}
+                  {Object.values(orderProcessDetail)[Math.floor(Math.random() * Object.values(orderProcessDetail).length)].description}
                 </Typography>
               </Box>
               <hr />

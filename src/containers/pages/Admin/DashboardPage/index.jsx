@@ -38,7 +38,7 @@ export default function StoreDashboard() {
       setProducts(
         snapshot.docs.map((document) => ({
           name: document.data().name,
-          amount: document.data().sold ?? 1
+          sold: document.data().sold ?? 1
         }))
       )
     );
@@ -75,26 +75,9 @@ export default function StoreDashboard() {
           },
           {
             title: 'Pemesanan Selesai',
-            colors: ['#B11900', '#6DAFA7', '#359AFF'],
-            notes: ['Produk', 'Pre-Order', 'Kostumisasi'],
+            color: '#B11900',
             path: 'order-finished',
-            datas: [
-              orders.filter(
-                (order) =>
-                  order.type === orderType.order &&
-                  order.processTracking.map((process) => process.name).includes(orderProcess.orderFinished)
-              ),
-              orders.filter(
-                (order) =>
-                  order.type === orderType.preOrder &&
-                  order.processTracking.map((process) => process.name).includes(orderProcess.orderFinished)
-              ),
-              orders.filter(
-                (order) =>
-                  order.type === orderType.customization &&
-                  order.processTracking.map((process) => process.name).includes(orderProcess.orderFinished)
-              )
-            ],
+            data: orders.filter((order) => order.processTracking.map((process) => process.name).includes(orderProcess.orderFinished)),
             reducer: (dataFilter) => dataFilter.length
           },
           {
@@ -130,7 +113,7 @@ export default function StoreDashboard() {
             data: orders
               .filter(
                 (order) =>
-                dateConverter(order.dateCreated) >= new Date(new Date().setDate(new Date().getDate() - 30)) &&
+                  dateConverter(order.dateCreated) >= new Date(new Date().setDate(new Date().getDate() - 30)) &&
                   order.transactionInfo.status === true
               )
               .reduce((value, order) => {

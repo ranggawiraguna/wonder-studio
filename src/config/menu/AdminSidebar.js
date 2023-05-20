@@ -32,25 +32,25 @@ const adminSidebar = {
               id: 'transaction',
               title: 'Transaksi',
               type: 'item',
-              url: '/store/transaction'
+              url: '/admin/transaction'
             },
             {
               id: 'order-finished',
               title: 'Pemesanan',
               type: 'item',
-              url: '/store/order-finished'
+              url: '/admin/order-finished'
             },
             {
               id: 'revenue',
               title: 'Pendapatan',
               type: 'item',
-              url: '/store/revenue'
+              url: '/admin/revenue'
             },
             {
               id: 'popular-product',
               title: 'Produk Terlaris',
               type: 'item',
-              url: '/store/popular-product'
+              url: '/admin/popular-product'
             },
           ]
         },

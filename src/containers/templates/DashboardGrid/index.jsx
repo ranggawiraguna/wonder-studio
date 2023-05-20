@@ -12,7 +12,6 @@ import IconCardNote from 'assets/images/icon/DashboardCardNote.svg';
 import AutoSizeText from 'components/elements/AutoSizeText';
 import SelectOptionTimeline from 'components/elements/SelectOptionTimeline';
 import ChartSingle from 'components/elements/ChartSingle';
-import ChartMultiple from 'components/elements/ChartMultiple';
 import LayerOverlayDetail from 'components/elements/LayerOverlayDetail';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -192,40 +191,14 @@ export default function DashboardGrid({ sectionName, itemValues }) {
             <SelectOptionTimeline onValueChanged={(value, timeline) => setTimelineValuesD(reverseTimelineValue(value, timeline))} />
           </Box>
           <Box gridArea="D">
-            {(() => {
-              return itemValues[2].notes ? (
-                <ChartMultiple
-                  id={`Chart${itemValues[2].title.replace(' ', '')}`}
-                  type="line"
-                  label={timelineValuesD}
-                  datas={[
-                    {
-                      name: 'Produk',
-                      data: getDataByTimeline(timelineValuesD, itemValues[2].datas[0], itemValues[2].reducer)
-                    },
-                    {
-                      name: 'Pre-Order',
-                      data: getDataByTimeline(timelineValuesD, itemValues[2].datas[1], itemValues[2].reducer)
-                    },
-                    {
-                      name: 'Kutomisasi',
-                      data: getDataByTimeline(timelineValuesD, itemValues[2].datas[2], itemValues[2].reducer)
-                    }
-                  ]}
-                  notes={itemValues[2].notes}
-                  colors={itemValues[2].colors}
-                />
-              ) : (
-                <ChartSingle
-                  id={`Chart${itemValues[2].title.replace(' ', '')}`}
-                  type="line"
-                  label={timelineValuesD}
-                  data={getDataByTimeline(timelineValuesD, itemValues[2].data, itemValues[2].reducer)}
-                  stroke="straight"
-                  color={itemValues[2].color}
-                />
-              );
-            })()}
+            <ChartSingle
+              id={`Chart${itemValues[2].title.replace(' ', '')}`}
+              type="line"
+              label={timelineValuesD}
+              data={getDataByTimeline(timelineValuesD, itemValues[2].data, itemValues[2].reducer)}
+              stroke="straight"
+              color={itemValues[2].color}
+            />
           </Box>
         </Box>
       </Box>
@@ -327,7 +300,7 @@ export default function DashboardGrid({ sectionName, itemValues }) {
               id={`Chart${itemValues[5].title.replace(' ', '')}`}
               type="pie"
               label={itemValues[5].data.map((element) => element.name)}
-              data={itemValues[5].data.map((element) => element.amount)}
+              data={itemValues[5].data.map((element) => element.sold)}
               colors={['#B11900', '#e7ba3f', '#6DAFA7', '#7BA7FF', '#B05AF3']}
             />
           </Box>
