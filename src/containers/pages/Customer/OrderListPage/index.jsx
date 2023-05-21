@@ -8,7 +8,7 @@ import { defaultProductImage, orderProcess, orderType } from 'utils/other/Enviro
 import { MENU_OPEN, SET_ACTIVE } from 'utils/redux/action';
 import PageRoot from './styled';
 
-export default function HistoryOrderPage() {
+export default function OrderListPage() {
   const dispatch = useDispatch();
   const sidebarReducer = useSelector((state) => state.sidebarReducer);
   const searchReducer = useSelector((state) => state.searchReducer);

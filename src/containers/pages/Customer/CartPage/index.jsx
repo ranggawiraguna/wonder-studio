@@ -3,12 +3,12 @@ import { Fragment, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { MENU_OPEN } from 'utils/redux/action';
 
-export default function MyCartPage() {
+export default function CartPage() {
   const dispatch = useDispatch();
   const sidebarReducer = useSelector((state) => state.sidebarReducer);
   useEffect(() => {
-    if (!(sidebarReducer.isOpen.findIndex((id) => id === 'my-cart') > -1)) {
-      dispatch({ type: MENU_OPEN, id: 'my-cart' });
+    if (!(sidebarReducer.isOpen.findIndex((id) => id === 'cart') > -1)) {
+      dispatch({ type: MENU_OPEN, id: 'cart' });
     }
     return () => {
       //
