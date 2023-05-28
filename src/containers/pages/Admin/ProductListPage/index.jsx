@@ -95,7 +95,7 @@ export default function ProductListPage() {
             return dataList.map((product, index) => (
               <Fragment key={index}>
                 <TableRow sx={{ height: index === 0 ? 20 : 8 }} />
-                <TableRow className={index !== dataList.length - 1 ? 'card' : 'card last'}>
+                <TableRow className={index !== dataList.length - 1 ? 'card-product' : 'card-product last'}>
                   <TableCell align={tableAlignContent[0]} sx={{ width: '74px', padding: '7px' }}>
                     <Box
                       sx={{

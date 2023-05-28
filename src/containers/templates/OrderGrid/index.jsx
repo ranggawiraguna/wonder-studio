@@ -10,7 +10,7 @@ import IllustrationEmptyContent from 'assets/images/illustration/EmptyContent.sv
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from 'config/firebase';
 
-export default function OrderGrid({ data, type, isCompleteListener, isEmptySearch }) {
+export default function OrderGrid({ data, type, isAdmin = true, isCompleteListener, isEmptySearch, showLastProcess = true }) {
   const navigate = useNavigate();
 
   const [selectedData, setSelectedData] = useState({
@@ -66,7 +66,7 @@ export default function OrderGrid({ data, type, isCompleteListener, isEmptySearc
                 </Typography>
                 <Box gridArea="C">
                   <Typography variant="p" component="p">
-                    Warna :
+                    Model :
                   </Typography>
                   <Box sx={{ backgroundColor: element.color, border: '1px solid lightgrey' }} />
                 </Box>
@@ -93,7 +93,7 @@ export default function OrderGrid({ data, type, isCompleteListener, isEmptySearc
                   })()}
                 </Box>
                 <Typography gridArea="E" variant="p" component="p">
-                  Jumlah : {element.count}
+                  Jumlah : {element.count || 0}
                 </Typography>
                 <Typography gridArea="F" variant="p" component="p">
                   {moneyFormatter(element.price ?? 0)}
@@ -116,8 +116,8 @@ export default function OrderGrid({ data, type, isCompleteListener, isEmptySearc
                   {moneyFormatter(element.totalPrice ?? 0)}
                 </Typography>
               </Box>
-              <hr />
-              <Box gridTemplateAreas={`"A B ."`} gridTemplateColumns={'auto auto 1fr'}>
+              <hr style={showLastProcess ? {} : { display: 'none' }}/>
+              <Box gridTemplateAreas={`"A B ."`} gridTemplateColumns={'auto auto 1fr'} style={showLastProcess ? {} : { display: 'none' }}>
                 <CardMedia component="img" src={IconOrderStatus} />
                 <Typography gridArea="B" variant="p" component="p">
                   {Object.values(orderProcessDetail)[Math.floor(Math.random() * Object.values(orderProcessDetail).length)].description}
@@ -131,6 +131,7 @@ export default function OrderGrid({ data, type, isCompleteListener, isEmptySearc
                 <Box gridArea="A">
                   <Button
                     variant="contained"
+                    sx={isAdmin ? {} : { display: 'none' }}
                     onClick={async () => {
                       const customerSnapshot = await getDoc(doc(db, 'customers', element.customerId));
                       setSelectedData({

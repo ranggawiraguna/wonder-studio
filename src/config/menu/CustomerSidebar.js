@@ -8,10 +8,10 @@ const customerSidebar = {
       type: 'group',
       children: [
         {
-          id: 'dashboard',
+          id: 'product',
           title: 'Beranda',
           type: 'item',
-          url: '/customer/dashboard',
+          url: '/customer/product',
           icon: IconDashboard
         },
         {

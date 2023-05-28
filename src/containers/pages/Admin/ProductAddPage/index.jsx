@@ -7,7 +7,6 @@ import { defaultProductImage } from 'utils/other/EnvironmentValues';
 import IconClose from 'assets/images/icon/CloseCircle.svg';
 import IconAdd from 'assets/images/icon/AddCircle.svg';
 import PageRoot from './styled';
-import ColorPicker from 'components/elements/ColorPicker';
 import AlertToast from 'components/elements/AlertToast';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import DialogSingleForm from 'components/views/DialogOthers/DialogSingleForm';
@@ -20,8 +19,6 @@ export default function ProductAddPage() {
   const [isOpenDialogAddModel, setIsOpenDialogAddModel] = useState(false);
   const [isOpenDialogAddSize, setIsOpenDialogAddSize] = useState(false);
 
-  const [openColorPicker, setOpenColorPicker] = useState(false);
-
   const [selectedImage, setSelectedImage] = useState([null, null, null]);
   const [selectedImageUrl, setSelectedImageUrl] = useState([defaultProductImage, defaultProductImage, defaultProductImage]);
 
@@ -33,7 +30,6 @@ export default function ProductAddPage() {
   });
 
   const [product, setProduct] = useState({
-    colors: [],
     models: [],
     description: '',
     uom: '',
@@ -111,7 +107,6 @@ export default function ProductAddPage() {
               }
               setSelectedImage([null, null, null]);
               setProduct({
-                colors: [],
                 models: [],
                 description: '',
                 uom: '',
@@ -181,20 +176,6 @@ export default function ProductAddPage() {
     });
   };
 
-  const handleAddColor = (selectedColor) => {
-    setProduct({
-      ...product,
-      colors: [...product.colors, selectedColor]
-    });
-  };
-
-  const handleDeleteColor = (selectedColor) => {
-    setProduct({
-      ...product,
-      colors: [...product.colors?.filter((color) => color !== selectedColor)]
-    });
-  };
-
   const handleAddSize = (selectedSize) => {
     if (selectedSize && !product.models?.includes(selectedSize.toLowerCase().trim())) {
       setProduct({
@@ -242,6 +223,7 @@ export default function ProductAddPage() {
                     <Box
                       gridArea="A"
                       sx={{
+                        aspectRatio: 1,
                         backgroundImage: `url(${image})`,
                         backgroundRepeat: 'no-repeat'
                       }}
@@ -339,30 +321,6 @@ export default function ProductAddPage() {
               <></>
             )}
             <Box className="value-list">
-              <Box>
-                <Typography variant="h4" component="h4">
-                  Warna
-                </Typography>
-                <Box>
-                  {(() => {
-                    return product.colors?.map((color, index) => {
-                      return (
-                        <Box key={index}>
-                          <Box sx={{ backgroundColor: color }} />
-                          <Button onClick={() => handleDeleteColor(color)}>
-                            <CardMedia component="img" src={IconClose} />
-                          </Button>
-                        </Box>
-                      );
-                    });
-                  })()}
-                  <Box>
-                    <Button onClick={() => setOpenColorPicker(true)}>
-                      <CardMedia component="img" src={IconAdd} />
-                    </Button>
-                  </Box>
-                </Box>
-              </Box>
               <Box>
                 <Typography variant="h4" component="h4">
                   Jenis
@@ -481,8 +439,10 @@ export default function ProductAddPage() {
                             <FilledInput
                               type="number"
                               value={
-                                parseInt((product.prices ??[]).find((price) => price.fields.join(',') === item.join(','))?.value || 0) > 0
-                                  ? (product.prices ?? []).find((price) => price.fields.join(',') === item.join(','))?.value.replace(/^0+/, '')
+                                parseInt((product.prices ?? []).find((price) => price.fields.join(',') === item.join(','))?.value || 0) > 0
+                                  ? (product.prices ?? [])
+                                      .find((price) => price.fields.join(',') === item.join(','))
+                                      ?.value.replace(/^0+/, '')
                                   : 0
                               }
                               onChange={(_) => {
@@ -521,7 +481,6 @@ export default function ProductAddPage() {
           </Box>
         </Box>
       </PageRoot>
-      <ColorPicker open={openColorPicker} onClose={() => setOpenColorPicker(false)} onConfirmed={handleAddColor} />
       <DialogSingleForm
         open={isOpenDialogAddModel}
         onClose={() => setIsOpenDialogAddModel(false)}

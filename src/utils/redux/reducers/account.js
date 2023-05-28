@@ -84,7 +84,7 @@ export function loginSession(action) {
                     return action.navigate('/admin/dashboard');
   
                   case 'customer':
-                    return action.navigate('/customer/dashboard');
+                    return action.navigate('/customer/product');
   
                   default:
                     break;

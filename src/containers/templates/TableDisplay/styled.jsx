@@ -175,8 +175,13 @@ const SelectInput = styled(InputBase)(() => ({
     borderRadius: 4,
     padding: '5px 15px 5px 10px',
     '&:focus': {
+      transform: 'translateX(6px)',
+      backgroundColor: 'white',
+      fontSize: 14,
+      outline: '2px solid #ced4da',
       border: '2px solid white',
-      borderRadius: 4
+      borderRadius: 4,
+      padding: '5px 15px 5px 10px'
     }
   }
 }));

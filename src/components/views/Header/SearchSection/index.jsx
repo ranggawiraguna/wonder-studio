@@ -48,12 +48,13 @@ export default function SearchSection() {
                                 value={searchReducer.value}
                                 onChange={(e) => dispatch({ type: SET_VALUE, value: e.target.value })}
                                 sx={{
-                                  borderRadius: '12px'
+                                  borderRadius: '12px',
+                                  '& legend': { display: 'none' }
                                 }}
                                 placeholder="Pencarian"
                                 startAdornment={
                                   <InputAdornment position="start">
-                                    <IconSearch stroke={1.5} size="1rem" color={theme.palette.grey[500]} />
+                                    <IconSearch stroke={2} size="1rem" color={theme.palette.grey[500]} />
                                   </InputAdornment>
                                 }
                                 endAdornment={
@@ -101,7 +102,7 @@ export default function SearchSection() {
           id="input-search-header"
           value={searchReducer.value}
           sx={{
-            borderRadius: '12px'
+            borderRadius: '12px',
           }}
           onChange={(e) => dispatch({ type: SET_VALUE, value: e.target.value })}
           placeholder="Pencarian"

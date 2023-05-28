@@ -14,7 +14,7 @@ export default function ValidateLogin() {
           return navigate('/admin/dashboard');
 
         case 'customer':
-          return navigate('/customer/dashboard');
+          return navigate('/customer/product');
 
         default:
           break;

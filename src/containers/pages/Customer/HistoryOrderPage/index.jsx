@@ -22,8 +22,8 @@ export default function HistoryOrderPage() {
   }, [orders, searchReducer.value]);
 
   useEffect(() => {
-    if (!(sidebarReducer.isOpen.findIndex((id) => id === 'order') > -1)) {
-      dispatch({ type: MENU_OPEN, id: 'order' });
+    if (!(sidebarReducer.isOpen.findIndex((id) => id === 'history-order') > -1)) {
+      dispatch({ type: MENU_OPEN, id: 'history-order' });
     }
 
     const listenerOrders = onSnapshot(collection(db, 'orders'), async (snapshot) => {
@@ -78,6 +78,8 @@ export default function HistoryOrderPage() {
       <OrderGrid
         data={dataList}
         type={orderType.order}
+        showLastProcess={false}
+        isAdmin={false}
         isCompleteListener={isCompleteListener}
         isEmptySearch={orders.length > 0 && dataList.length === 0}
       />

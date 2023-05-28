@@ -1,7 +1,7 @@
 import { Box, styled } from '@mui/material';
 
 export default styled(Box)(({ theme }) => ({
-  '& .card': {
+  '& .card-product': {
     '& > td:last-child': {
       '& > div': {
         position: 'relative',

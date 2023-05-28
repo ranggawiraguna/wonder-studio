@@ -268,7 +268,7 @@ export default function StartedPage() {
                   return navigate('/admin/product');
 
                 case 'customer':
-                  return navigate('/customer/dashboard');
+                  return navigate('/customer/product');
 
                 default:
                   return navigate('/masuk');

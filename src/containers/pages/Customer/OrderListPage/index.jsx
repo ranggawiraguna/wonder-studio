@@ -78,6 +78,7 @@ export default function OrderListPage() {
       <OrderGrid
         data={dataList}
         type={orderType.order}
+        isAdmin={false}
         isCompleteListener={isCompleteListener}
         isEmptySearch={orders.length > 0 && dataList.length === 0}
       />

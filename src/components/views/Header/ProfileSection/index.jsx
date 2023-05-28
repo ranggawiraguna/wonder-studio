@@ -174,13 +174,13 @@ export default function ProfileSection() {
                         <Typography variant="h4">{accountReducer.fullname != null ? accountReducer.fullname : 'User'}</Typography>
                       </Stack>
                       <Typography variant="subtitle2">
-                        {(accountReducer.role != null
-                              ? accountReducer.role[0]?.toUpperCase() + accountReducer.role?.substring(1, accountReducer.role.length)
-                              : '')}
+                        {accountReducer.role != null
+                          ? accountReducer.role[0]?.toUpperCase() + accountReducer.role?.substring(1, accountReducer.role.length)
+                          : ''}
                       </Typography>
                     </Stack>
                   </Box>
-                                    <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>
+                  <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>
                     <Box sx={{ p: 2 }}>
                       <List
                         component="nav"
@@ -201,9 +201,7 @@ export default function ProfileSection() {
                         <ListItemButton
                           sx={{ borderRadius: `${sidebarReducer.borderRadius}px` }}
                           selected={location.pathname.includes('profile') && !isLogoutProcess}
-                          onClick={(event) =>
-                            handleListItemClick(event, `/${accountReducer.role}/profile`)
-                          }
+                          onClick={(event) => handleListItemClick(event, `/${accountReducer.role}/profile`)}
                         >
                           <ListItemIcon>
                             <IconUser stroke={1.5} size="1.3rem" />

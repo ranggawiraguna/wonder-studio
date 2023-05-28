@@ -47,15 +47,13 @@ export default styled(Box)(({ theme }) => ({
 
           '& > div:first-of-type': {
             backgroundColor: 'lightgrey',
-            width: '120px',
-            height: '120px',
+            minWidth: '120px',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             borderRadius: '5px'
           },
           '& > div:not(:first-of-type)': {
             '& > button, & > label > span': {
-              minWidth: 0,
               minHeight: 0,
               width: '100%',
               fontWeight: 'bold',
