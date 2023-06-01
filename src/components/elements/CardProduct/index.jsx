@@ -35,9 +35,9 @@ export default function ProductCard({ favorites = [], product = {}, ...props }) 
             ? moneyFormatter(product.price)
             : product.prices != null
             ? product.prices.length > 1
-              ? `${moneyFormatter(Math.min(...product.prices))}  s/d  ${moneyFormatter(Math.max(...product.prices))}}`
+              ? `${moneyFormatter(Math.min(...product.prices.map((_)=>_.value)))}  s/d  ${moneyFormatter(Math.max(...product.prices.map((_)=>_.value)))}`
               : product.prices.length > 0
-              ? moneyFormatter(product.prices[0])
+              ? moneyFormatter(product.prices[0].value)
               : 'Rp. -'
             : 'Rp. -'}
         </Typography>
@@ -56,7 +56,7 @@ export default function ProductCard({ favorites = [], product = {}, ...props }) 
         </IconButton>
         <Button
           onClick={() => {
-            navigate(`/customer/product/${crypto.randomUUID()}`);
+            navigate(`/customer/product/${product.id}`);
           }}
           variant="contained"
           sx={{ flex: 1 }}

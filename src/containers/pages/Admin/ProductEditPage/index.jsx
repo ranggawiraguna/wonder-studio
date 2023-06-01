@@ -525,7 +525,6 @@ export default function ProductEditPage() {
                                   ...product,
                                   prices: [...tempPrices]
                                 });
-                                console.log(tempPrices);
                               }}
                               startAdornment={<InputAdornment position="start">Rp. </InputAdornment>}
                             />

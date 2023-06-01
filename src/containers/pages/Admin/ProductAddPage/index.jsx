@@ -459,8 +459,6 @@ export default function ProductAddPage() {
                                   });
                                 }
 
-                                console.log(value);
-
                                 setProduct({
                                   ...product,
                                   prices: [...tempPrices]
