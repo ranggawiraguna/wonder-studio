@@ -7,7 +7,7 @@ import { orderProcess, orderProcessDetail, orderType } from 'utils/other/Environ
 import FieldGroupView from 'components/elements/FieldGroupView';
 import { dateFormatter, moneyFormatter } from 'utils/other/Services';
 import OrderItem from 'components/elements/OrderItem';
-import DialogUpdateOrderProcess from 'components/views/DialogActionOrder/DialogUpdateOrderProcess';
+import DialogUpdateOrderProcess from 'components/views/DialogActionOrder/UpdateOrderProcess';
 import DialogUpdateOrderPrice from 'components/views/DialogActionOrder/UpdateOrderPrice';
 
 export default function OrderView({ data }) {

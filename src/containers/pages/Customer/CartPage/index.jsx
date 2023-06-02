@@ -162,7 +162,42 @@ export default function CartPage() {
                       </Box>
                     </Grid>
                   </Grid>
-                  <hr color="whitesmoke" />
+                  <Spacer />
+                  <Typography variant="h4" sx={{ marginBottom: 2 }}>
+                    File Desain
+                  </Typography>
+                  <Grid
+                    container
+                    spacing={1}
+                    sx={{
+                      outline: '2px solid rgba(0,0,0,0.1)',
+                      borderRadius: 1,
+                      width: 'calc(100%  - 10px)',
+                      marginLeft: '2px',
+                      paddingBottom: 1
+                    }}
+                  >
+                    {Array.from(Array(Math.floor(Math.random() * 10) + 1).keys()).map((_, __) => (
+                      <Grid key={__} item xs={1}>
+                        <Box
+                          sx={{
+                            aspectRatio: 1,
+                            borderRadius: 1,
+                            width: '100%',
+                            backgroundColor: 'lightgrey',
+                            overflow: 'hidden',
+                            backgroundImage: `url(${faker.image.image(null, null, true)})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            position: 'relative'
+                          }}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                  <Box
+                    sx={{ width: 'calc(100% - 10px)', height: 3, backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 1000, marginTop: 5, marginBottom: 5 }}
+                  />
                 </Box>
               ))}
             </PerfectScrollbar>
@@ -194,7 +229,7 @@ export default function CartPage() {
               </Box>
               <Box sx={{ flex: 1 }} />
               <Box sx={{ height: '1px', width: '100%', backgroundColor: 'lightgrey', marginBottom: 2 }} />
-              <Typography variant="h4" sx={{ marginBottom: 1}}>
+              <Typography variant="h4" sx={{ marginBottom: 1 }}>
                 Total Pesanan
               </Typography>
               <Box sx={{ display: 'flex' }}>

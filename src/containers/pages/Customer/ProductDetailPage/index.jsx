@@ -13,6 +13,8 @@ import EastIcon from '@mui/icons-material/East';
 import { useParams } from 'react-router';
 import { defaultProductImage } from 'utils/other/EnvironmentValues';
 import { blue } from '@mui/material/colors';
+import DialogAddOrder from 'components/views/DialogActionOrder/AddOrder';
+import AlertToast from 'components/elements/AlertToast';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -29,14 +31,27 @@ export default function ProductDetailPage() {
   });
 
   const [imageSelected, setImageSelected] = useState(0);
-
-  // const models = ['Bagus', 'Biasa'];
   const [modelSelected, setModelSelected] = useState(null);
-
-  // const sizes = ['1m x 1m', '1m x 1,5m', '1,5m x 1,5m'];
   const [sizeSelected, setSizeSelected] = useState(null);
-
   const [countCart, setCountCart] = useState(0);
+
+  const [alertDescription, setAlertDescription] = useState({
+    isOpen: false,
+    type: 'info',
+    text: '',
+    transitionName: 'slideUp'
+  });
+
+  const [openDialogAddOrderType, setOpenDialogAddOrderType] = useState('');
+  const [openDialogAddOrder, setOpenDialogAddOrder] = useState(false);
+
+  const showAlertToast = (type, text) =>
+    setAlertDescription({
+      ...alertDescription,
+      isOpen: true,
+      type: type,
+      text: text
+    });
 
   useEffect(() => {
     const listenerProduct = onSnapshot(doc(db, 'products', params.id), (snapshot) => {
@@ -210,7 +225,10 @@ export default function ProductDetailPage() {
             <Typography variant="h4" sx={{ marginBottom: 1 }}>
               Description
             </Typography>
-            <Typography variant="h5"> {product.description ?? '-'}</Typography>
+            <Typography variant="h5">
+              {' '}
+              {(product.description ?? '').toString().length > 0 ? product.description : 'Tidak Ada Deskripsi'}
+            </Typography>
             <Spacer />
             <Typography variant="h4" sx={{ marginBottom: 1 }}>
               Satuan Jumlah
@@ -236,7 +254,9 @@ export default function ProductDetailPage() {
                       onClick={() => (modelSelected === _ ? setModelSelected(null) : setModelSelected(_))}
                       sx={{
                         ...{ padding: '5px 15px', borderRadius: 1, cursor: 'pointer' },
-                        ...(modelSelected === _ ? { backgroundColor: 'black', border: '2px solid black' } : { border: '2px solid grey' })
+                        ...(modelSelected === _
+                          ? { backgroundColor: 'rgb(44,44,44)', border: '2px solid rgb(44,44,44)' }
+                          : { border: '2px solid grey' })
                       }}
                     >
                       <Typography variant="p" sx={{ color: modelSelected === _ ? 'white' : 'grey', fontFamily: 'Folks' }}>
@@ -261,7 +281,9 @@ export default function ProductDetailPage() {
                       onClick={() => (sizeSelected === _ ? setSizeSelected(null) : setSizeSelected(_))}
                       sx={{
                         ...{ padding: '5px 15px', borderRadius: 1, cursor: 'pointer' },
-                        ...(sizeSelected === _ ? { backgroundColor: 'black', border: '2px solid black' } : { border: '2px solid grey' })
+                        ...(sizeSelected === _
+                          ? { backgroundColor: 'rgb(44,44,44)', border: '2px solid rgb(44,44,44)' }
+                          : { border: '2px solid grey' })
                       }}
                     >
                       <Typography variant="p" sx={{ color: sizeSelected === _ ? 'white' : 'grey', fontFamily: 'Folks' }}>
@@ -279,9 +301,9 @@ export default function ProductDetailPage() {
             </Typography>
             <Box
               sx={{
-                backgroundColor: 'white',
                 minHeight: 40,
-                outline: '2px solid rgba(0,0,0,0.1)',
+                outline: countCart > 0 ? '2px solid rgb(44,44,44)' : '2px solid grey',
+                backgroundColor: countCart > 0 ? 'rgb(44,44,44)' : 'transparent',
                 borderRadius: 2,
                 display: 'flex',
                 width: 'fit-content'
@@ -296,11 +318,11 @@ export default function ProductDetailPage() {
                   cursor: 'pointer',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  backgroundColor: 'rgba(0,0,0,0.1)',
+                  backgroundColor: countCart > 0 ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.1)',
                   borderRadius: 1
                 }}
               >
-                <RemoveIcon />
+                <RemoveIcon sx={{ fill: countCart > 0 ? 'white' : 'grey' }} />
               </Box>
               <InputBase
                 value={(parseInt(countCart) || 0) > 0 ? countCart.toString().replace(/^0+/, '') : ''}
@@ -308,6 +330,7 @@ export default function ProductDetailPage() {
                 sx={{
                   textAlign: 'center',
                   '& input': {
+                    color: countCart > 0 ? 'white' : 'black',
                     textAlign: 'center'
                   }
                 }}
@@ -322,11 +345,11 @@ export default function ProductDetailPage() {
                   cursor: 'pointer',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  backgroundColor: 'rgba(0,0,0,0.1)',
+                  backgroundColor: countCart > 0 ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.1)',
                   borderRadius: 1
                 }}
               >
-                <AddIcon />
+                <AddIcon sx={{ fill: countCart > 0 ? 'white' : 'grey' }} />
               </Box>
             </Box>
             <Box sx={{ flex: 1 }} />
@@ -339,13 +362,43 @@ export default function ProductDetailPage() {
                 gap: { xs: 2, xm: 5 }
               }}
             >
-              <Button variant="outlined" sx={{ display: 'flex', gap: '10px', padding: '10px 25px' }}>
+              <Button
+                variant="outlined"
+                sx={{ display: 'flex', gap: '10px', padding: '10px 25px' }}
+                onClick={() => {
+                  if (
+                    (Array.from(product.sizes ?? []).length > 0 ? sizeSelected != null : true) &&
+                    (Array.from(product.models ?? []).length > 0 ? modelSelected != null : true) &&
+                    (countCart ?? 0) > 0
+                  ) {
+                    setOpenDialogAddOrderType('Cart');
+                    setOpenDialogAddOrder(true);
+                  } else {
+                    showAlertToast('warning', 'Silahkan lengkapi keterangan pesanan kamu');
+                  }
+                }}
+              >
                 <ShoppingCart />
                 <Typography variant="h4" color={blue[500]}>
                   Masukkan Ke Keranjang
                 </Typography>
               </Button>
-              <Button variant="contained" sx={{ display: 'flex', gap: '10px', padding: '10px 25px' }}>
+              <Button
+                variant="contained"
+                sx={{ display: 'flex', gap: '10px', padding: '10px 25px' }}
+                onClick={() => {
+                  if (
+                    (Array.from(product.sizes ?? []).length > 0 ? sizeSelected != null : true) &&
+                    (Array.from(product.models ?? []).length > 0 ? modelSelected != null : true) &&
+                    (countCart ?? 0) > 0
+                  ) {
+                    setOpenDialogAddOrderType('Order');
+                    setOpenDialogAddOrder(true);
+                  } else {
+                    showAlertToast('warning', 'Silahkan lengkapi keterangan pesanan kamu');
+                  }
+                }}
+              >
                 <Typography variant="h4" sx={{ color: 'white' }}>
                   Pesan Produk
                 </Typography>
@@ -355,6 +408,24 @@ export default function ProductDetailPage() {
           </Box>
         </Grid>
       </Grid>
+      <DialogAddOrder
+        open={openDialogAddOrder}
+        type={openDialogAddOrderType}
+        data={{
+          product: product,
+          sizeSelected: sizeSelected,
+          modelSelected: modelSelected,
+          countCart: countCart
+        }}
+        onClose={() => {
+          setSizeSelected(null);
+          setModelSelected(null);
+          setCountCart(0);
+          setOpenDialogAddOrderType('');
+          setOpenDialogAddOrder(false);
+        }}
+      />
+      <AlertToast description={alertDescription} setDescription={setAlertDescription} />
     </Fragment>
   );
 }

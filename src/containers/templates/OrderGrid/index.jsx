@@ -5,7 +5,7 @@ import { orderProcessDetail, orderType } from 'utils/other/EnvironmentValues';
 import { useNavigate } from 'react-router';
 import { dateFormatter, moneyFormatter } from 'utils/other/Services';
 import { Fragment, useState } from 'react';
-import DialogUpdateOrderProcess from 'components/views/DialogActionOrder/DialogUpdateOrderProcess';
+import DialogUpdateOrderProcess from 'components/views/DialogActionOrder/UpdateOrderProcess';
 import IllustrationEmptyContent from 'assets/images/illustration/EmptyContent.svg';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from 'config/firebase';
