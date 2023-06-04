@@ -38,8 +38,8 @@ const dateConverter = (value) => {
   }
 };
 
-const stringCapitalize = (text) => {  
-  return text.toString().length > 0
+const stringCapitalize = (text) => {
+  return (text ?? '').toString().length > 0
     ? text
         .split(' ')
         .map((_) => (_.toString().length > 0 ? _[0].toUpperCase() + (_.length > 1 ? _.substring(1) : '') : ''))

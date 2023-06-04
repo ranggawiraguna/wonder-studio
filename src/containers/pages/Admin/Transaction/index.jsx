@@ -31,13 +31,12 @@ export default function TransactionPage() {
           snapshot.docs
             .filter((document) => {
               const processList = document.data().processTracking.map((tracking) => tracking.name);
-              return document.data().transactionInfo.status === true && !processList.includes(orderProcess.orderFinished);
+              return !processList.includes(orderProcess.orderFinished) && !processList.includes(orderProcess.orderCanceled);
             })
             .map(async (document) => ({
               id: document.id,
               customerId: document.data().customerId,
               customerName: (await getDoc(doc(db, 'customers', document.data().customerId))).data().fullname,
-              status: document.data().transactionInfo.status,
               image: document.data().transactionInfo.image,
               price: (() => {
                 switch (document.data().type) {
@@ -99,7 +98,15 @@ export default function TransactionPage() {
                   </Typography>
                 </TableCell>
                 <TableCell align={tableAlignContent[4]}>
-                  <CardMedia component="img" className="data-status" src={order.status ? IconStatusRunning : IconStatusDelayed} />
+                  <CardMedia
+                    component="img"
+                    className="data-status"
+                    src={
+                      order.processTracking.includes(orderProcess.paymentConfirmed)
+                        ? IconStatusRunning
+                        : IconStatusDelayed
+                    }
+                  />
                 </TableCell>
               </TableRow>
               <TableRow sx={{ height: index === orders.length - 1 ? 20 : 8 }} />

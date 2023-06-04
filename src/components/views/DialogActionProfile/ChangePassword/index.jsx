@@ -170,7 +170,7 @@ const DialogChangePassword = forwardRef(({ open, onClose, ...others }, ref) => {
               const labels = {
                 old: 'Password Lama',
                 new: 'Password Baru',
-                newConfirm: 'Konfirmasi Password Lama'
+                newConfirm: 'Konfirmasi Password Baru'
               };
 
               const toggleShow = `show${key.at(0).toUpperCase()}${key.substring(1, key.length)}Password`;

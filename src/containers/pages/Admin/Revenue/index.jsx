@@ -5,7 +5,7 @@ import AccordionDisplay from 'containers/templates/AccordionDisplay';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { orderType, reverseTimelineValue, timeline, timelineValues } from 'utils/other/EnvironmentValues';
+import { orderProcess, orderType, reverseTimelineValue, timeline, timelineValues } from 'utils/other/EnvironmentValues';
 import { dateFormatter } from 'utils/other/Services';
 import { MENU_OPEN } from 'utils/redux/action';
 import PageRoot from './styled';
@@ -65,7 +65,10 @@ export default function RevenuePage() {
     const listenerOrders = onSnapshot(collection(db, 'orders'), (snapshot) =>
       setOrders(
         snapshot.docs
-          .filter((document) => document.data().transactionInfo.status === true)
+          .filter((document) => {
+            const processList = document.data().processTracking.map((tracking) => tracking.name);
+            return processList.includes(orderProcess.orderFinished) && processList.includes(orderProcess.paymentConfirmed);
+          })
           .map((document) => ({
             id: document.id,
             customerId: document.data().customerId,

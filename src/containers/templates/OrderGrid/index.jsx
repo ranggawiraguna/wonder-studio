@@ -1,7 +1,7 @@
 import { Box, Button, CardMedia, Typography } from '@mui/material';
 import Component from './styled';
 import IconOrderStatus from 'assets/images/icon/OrderStatusInfo.svg';
-import { orderProcessDetail, orderType } from 'utils/other/EnvironmentValues';
+import { orderProcessDetail } from 'utils/other/EnvironmentValues';
 import { useNavigate } from 'react-router';
 import { dateFormatter, moneyFormatter } from 'utils/other/Services';
 import { Fragment, useState } from 'react';
@@ -9,6 +9,7 @@ import DialogUpdateOrderProcess from 'components/views/DialogActionOrder/UpdateO
 import IllustrationEmptyContent from 'assets/images/illustration/EmptyContent.svg';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from 'config/firebase';
+import OrderItem from 'components/elements/OrderItem';
 
 export default function OrderGrid({ data, type, isAdmin = true, isCompleteListener, isEmptySearch, showLastProcess = true }) {
   const navigate = useNavigate();
@@ -34,71 +35,15 @@ export default function OrderGrid({ data, type, isAdmin = true, isCompleteListen
         {(() => {
           return data.map((element, index) => (
             <Box key={index} data={element}>
-              <Box gridTemplateAreas={`"A . B"`} gridTemplateColumns={'auto 1fr auto'}>
+              <Box gridTemplateAreas={`"A . B"`} gridTemplateColumns={'1fr 10px auto'}>
                 <Typography gridArea="A" variant="h4" component="h4">
-                  No Pesanan : {element.id}
+                  No Pesanan : {element.id.toString().toUpperCase()}
                 </Typography>
-                <Typography gridArea="B" variant="p" component="p">
+                <Typography gridArea="B" variant="p" component="p" marginBottom="auto">
                   {dateFormatter(element.dateCreated, 'eeee, d MMMM yyyy')}
                 </Typography>
               </Box>
-              <Box
-                gridTemplateAreas={{
-                  xs: `
-                "A B B"
-                "A C C"
-                "A D D"
-                "A E E"
-                "F F F"
-                `,
-                  sm: `
-                  "A B B"
-                  "A C C"
-                  "A D D"
-                  "A E F"
-                `
-                }}
-                gridTemplateColumns={'auto 1fr auto'}
-              >
-                <Box gridArea="A" sx={{ backgroundImage: `url(${element.productPhotoUrl})`, backgroundRepeat: 'no-repeat' }} />
-                <Typography gridArea="B" variant="p" component="p">
-                  {element.productName}
-                </Typography>
-                <Box gridArea="C">
-                  <Typography variant="p" component="p">
-                    Model :
-                  </Typography>
-                  <Box sx={{ backgroundColor: element.color, border: '1px solid lightgrey' }} />
-                </Box>
-                <Box gridArea="D">
-                  <Typography variant="p" component="p">
-                    Ukuran :
-                  </Typography>
-                  {(() => {
-                    return type === orderType.order ? (
-                      <Box sx={{ backgroundColor: 'lightgrey' }}>
-                        <Typography variant="p" component="p">
-                          {element.size}
-                        </Typography>
-                      </Box>
-                    ) : (
-                      element.sizes.map((size, index) => (
-                        <Box key={index} sx={{ backgroundColor: 'lightgrey' }}>
-                          <Typography variant="p" component="p">
-                            {size}
-                          </Typography>
-                        </Box>
-                      ))
-                    );
-                  })()}
-                </Box>
-                <Typography gridArea="E" variant="p" component="p">
-                  Jumlah : {element.count || 0}
-                </Typography>
-                <Typography gridArea="F" variant="p" component="p">
-                  {moneyFormatter(element.price ?? 0)}
-                </Typography>
-              </Box>
+              <OrderItem data={element.products[0]} />
               <Box>
                 <Box />
                 <Box />
@@ -107,20 +52,20 @@ export default function OrderGrid({ data, type, isAdmin = true, isCompleteListen
               <hr />
               <Box gridTemplateAreas={`"A . B C"`} gridTemplateColumns={'auto 1fr auto auto'}>
                 <Typography gridArea="A" variant="p" component="p">
-                  {element.totalCount} Produk
+                  Jumlah Produk : {element.products ? element.products.reduce((a, b) => a + b.count, 0) : 0}
                 </Typography>
                 <Typography gridArea="B" variant="p" component="p">
                   Total Pesanan :
                 </Typography>
                 <Typography gridArea="C" variant="p" component="p">
-                  {moneyFormatter(element.totalPrice ?? 0)}
+                  {moneyFormatter(element.products.reduce((a, b) => a + b.price, 0))}
                 </Typography>
               </Box>
-              <hr style={showLastProcess ? {} : { display: 'none' }}/>
+              <hr style={showLastProcess ? {} : { display: 'none' }} />
               <Box gridTemplateAreas={`"A B ."`} gridTemplateColumns={'auto auto 1fr'} style={showLastProcess ? {} : { display: 'none' }}>
                 <CardMedia component="img" src={IconOrderStatus} />
                 <Typography gridArea="B" variant="p" component="p">
-                  {Object.values(orderProcessDetail)[Math.floor(Math.random() * Object.values(orderProcessDetail).length)].description}
+                  {orderProcessDetail[element.processTracking[element.processTracking.length - 1].name].description}
                 </Typography>
               </Box>
               <hr />
@@ -176,8 +121,8 @@ export default function OrderGrid({ data, type, isAdmin = true, isCompleteListen
     >
       <Box
         sx={{
-          width: '80%',
-          height: '60%',
+          width: '60%',
+          height: '40%',
           backgroundImage: `url(${IllustrationEmptyContent})`,
           backgroundRepeat: 'no-repeat',
           backgroundSize: 'contain',

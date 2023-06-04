@@ -23,7 +23,9 @@ export function restoreSession(action) {
       let errorCheck = false;
       for (const path in paths) {
         try {
-          const docSnapshot = await getDocs(query(collection(db, paths[path]), where('username', '==', action.username.toLowerCase()), limit(1)));
+          const docSnapshot = await getDocs(
+            query(collection(db, paths[path]), where('username', '==', action.username.toLowerCase()), limit(1))
+          );
           if (!docSnapshot.empty) {
             data = { id: docSnapshot.docs[0].id, ...docSnapshot.docs[0].data() };
             role = path;
@@ -58,7 +60,9 @@ export function loginSession(action) {
       let errorCheck = false;
       for (const path in paths) {
         try {
-          const docSnapshot = await getDocs(query(collection(db, paths[path]), where('username', '==', action.data.username.toLowerCase()), limit(1)));
+          const docSnapshot = await getDocs(
+            query(collection(db, paths[path]), where('username', '==', action.data.username.toLowerCase()), limit(1))
+          );
           if (!docSnapshot.empty) {
             data = { id: docSnapshot.docs[0].id, ...docSnapshot.docs[0].data() };
             role = path;
@@ -82,10 +86,10 @@ export function loginSession(action) {
                 switch (role) {
                   case 'admin':
                     return action.navigate('/admin/dashboard');
-  
+
                   case 'customer':
                     return action.navigate('/customer/product');
-  
+
                   default:
                     break;
                 }
@@ -138,17 +142,21 @@ export function registerSession(action) {
         let errorCheck = false;
         let emailAlreadyExists = false;
         let usernameAlreadyExists = false;
-        const emailInvalid = !validate("test@email.com");
+        const emailInvalid = !validate('test@email.com');
 
         for (const path in paths) {
           try {
-            const usernameSnapshot = await getDocs(query(collection(db, paths[path]), where('username', '==', action.data.username.toLowerCase()), limit(1)));
+            const usernameSnapshot = await getDocs(
+              query(collection(db, paths[path]), where('username', '==', action.data.username.toLowerCase()), limit(1))
+            );
             if (!usernameSnapshot.empty) {
               usernameAlreadyExists = true;
               break;
             }
 
-            const emailSnapshot = await getDocs(query(collection(db, paths[path]), where('email', '==', action.data.email.toLowerCase()), limit(1)));
+            const emailSnapshot = await getDocs(
+              query(collection(db, paths[path]), where('email', '==', action.data.email.toLowerCase()), limit(1))
+            );
             if (!emailSnapshot.empty) {
               emailAlreadyExists = true;
               break;
@@ -165,7 +173,7 @@ export function registerSession(action) {
           showAlert('warning', 'Username yang dimasukkan telah digunakan');
         } else if (emailAlreadyExists) {
           showAlert('warning', 'Email yang dimasukkan telah digunakan');
-        } else if(emailInvalid){
+        } else if (emailInvalid) {
           showAlert('warning', 'Email yang dimasukkan tidak valid');
         } else {
           try {
@@ -205,7 +213,10 @@ export function updateIdentity(action) {
       if (action.data['photoUrl']) {
         try {
           const snapshot = await uploadBytes(
-            ref(storage, `/${paths[action.account.role]}-profile/${action.account.username.toLowerCase()}`),
+            ref(
+              storage,
+              `/${paths[action.account.role.substring(0, action.account.role.length - 1)]}-profile/${action.account.username.toLowerCase()}`
+            ),
             action.data.photoUrl
           );
           result = await getDownloadURL(snapshot.ref);

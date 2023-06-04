@@ -297,7 +297,7 @@ export default function ProductAddPage() {
               <OutlinedInput
                 id="InputMinimalOrder"
                 type="number"
-                value={product.minimalOrder > 0 ? product.minimalOrder.toString().replace(/^0+/, '') : 0}
+                value={product.minimalOrder > 0 ? parseInt(product.minimalOrder.toString().replace(/^0+/, '')) : 0}
                 onChange={handleChangeInput('minimalOrder')}
                 label="Minimal Order"
                 autoComplete="off"
@@ -310,7 +310,7 @@ export default function ProductAddPage() {
                 <OutlinedInput
                   id="InputHarga"
                   type="number"
-                  value={product.price > 0 ? product.price.toString().replace(/^0+/, '') : 0}
+                  value={product.price > 0 ? parseInt(product.price.toString().replace(/^0+/, '')) : 0}
                   onChange={handleChangeInput('price')}
                   label="Harga"
                   autoComplete="off"
@@ -440,15 +440,17 @@ export default function ProductAddPage() {
                               type="number"
                               value={
                                 parseInt((product.prices ?? []).find((price) => price.fields.join(',') === item.join(','))?.value || 0) > 0
-                                  ? (product.prices ?? [])
-                                      .find((price) => price.fields.join(',') === item.join(','))
-                                      ?.value.replace(/^0+/, '')
+                                  ? parseInt(
+                                      (product.prices ?? [])
+                                        .find((price) => price.fields.join(',') === item.join(','))
+                                        ?.value.replace(/^0+/, '') ?? 0
+                                    )
                                   : 0
                               }
                               onChange={(_) => {
                                 const tempPrices = [...(product.prices ?? [])];
                                 const priceIndex = tempPrices.findIndex((price) => price.fields.join(',') === item.join(','));
-                                const value = _.target.value.replace(/^0+/, '');
+                                const value = parseInt(_.target.value.replace(/^0+/, '')) ?? 0;
 
                                 if (priceIndex >= 0) {
                                   tempPrices[priceIndex].value = value;

@@ -9,7 +9,7 @@ import OrderViewPage from 'containers/pages/Customer/OrderViewPage';
 import ProductDetailPage from 'containers/pages/Customer/ProductDetailPage';
 
 const CustomerRoutes = [
-  <Route key="/customer" exact path="/customer" replace element={<Navigate to="dashboard" />} />,
+  <Route key="/customer" exact path="/customer" replace element={<Navigate to="product" />} />,
   <Route key="/customer/product" path="product" element={<HomePage />} />,
   <Route key="/customer/product/:id" path="/customer/product/:id" element={<ProductDetailPage />} />,
   <Route key="/customer/cart" path="cart" element={<CartPage />} />,

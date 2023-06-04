@@ -45,6 +45,17 @@ export default function ProductDetailPage() {
   const [openDialogAddOrderType, setOpenDialogAddOrderType] = useState('');
   const [openDialogAddOrder, setOpenDialogAddOrder] = useState(false);
 
+  const currentPrice =
+    product.price ??
+    (sizeSelected != null && modelSelected != null
+      ? (product.prices ?? []).find((_) => (_.fields ?? []).includes(sizeSelected) && (_.fields ?? []).includes(modelSelected)) ?? {
+          value: null
+        }
+      : (product.prices ?? []).find((_) => (_.fields ?? []).includes(sizeSelected) || (_.fields ?? []).includes(modelSelected)) ?? {
+          value: null
+        }
+    ).value;
+
   const showAlertToast = (type, text) =>
     setAlertDescription({
       ...alertDescription,
@@ -211,15 +222,19 @@ export default function ProductDetailPage() {
               {stringCapitalize(product.name)}
             </Typography>
             <Typography variant="h2" sx={{ color: 'rgba(0,0,0,0.5)' }}>
-              {product.price != null
-                ? moneyFormatter(product.price)
-                : product.prices != null
-                ? product.prices.length > 1
-                  ? `${moneyFormatter(Math.min(...product.prices))}  s/d  ${moneyFormatter(Math.max(...product.prices))}}`
-                  : product.prices.length > 0
-                  ? moneyFormatter(product.prices[0])
+              {currentPrice == null
+                ? product.price != null
+                  ? moneyFormatter(product.price)
+                  : product.prices != null
+                  ? product.prices.length > 1
+                    ? `${moneyFormatter(Math.min(...product.prices.map((_) => _.value)))}  s/d  ${moneyFormatter(
+                        Math.max(...product.prices.map((_) => _.value))
+                      )}`
+                    : product.prices.length > 0
+                    ? moneyFormatter(product.prices[0])
+                    : 'Rp. -'
                   : 'Rp. -'
-                : 'Rp. -'}
+                : moneyFormatter(currentPrice)}
             </Typography>
             <Box sx={{ height: '1px', width: '100%', backgroundColor: 'lightgrey', marginTop: 2, marginBottom: 2 }} />
             <Typography variant="h4" sx={{ marginBottom: 1 }}>
@@ -243,7 +258,7 @@ export default function ProductDetailPage() {
               {stringCapitalize((product.minimalOrder ?? '-') + (product.minimalOrder ? ` ${product.uom}` : ''))}
             </Typography>
             <Box sx={{ height: '1px', width: '100%', backgroundColor: 'lightgrey', marginTop: 2, marginBottom: 2 }} />
-            {product.models != null ? (
+            {Array.from(product.models ?? []).length > 0 ? (
               <>
                 <Typography variant="h4" sx={{ marginBottom: 1 }}>
                   Jenis
@@ -270,7 +285,7 @@ export default function ProductDetailPage() {
             ) : (
               <></>
             )}
-            {product.sizes != null ? (
+            {Array.from(product.sizes ?? []).length > 0 ? (
               <>
                 <Typography variant="h4" sx={{ marginBottom: 1 }}>
                   Ukuran
@@ -287,7 +302,7 @@ export default function ProductDetailPage() {
                       }}
                     >
                       <Typography variant="p" sx={{ color: sizeSelected === _ ? 'white' : 'grey', fontFamily: 'Folks' }}>
-                        {_}
+                        {stringCapitalize(_)}
                       </Typography>
                     </Box>
                   ))}
@@ -411,16 +426,20 @@ export default function ProductDetailPage() {
       <DialogAddOrder
         open={openDialogAddOrder}
         type={openDialogAddOrderType}
+        showAlert={showAlertToast}
+        currentPrice={currentPrice}
         data={{
           product: product,
           sizeSelected: sizeSelected,
           modelSelected: modelSelected,
           countCart: countCart
         }}
-        onClose={() => {
-          setSizeSelected(null);
-          setModelSelected(null);
-          setCountCart(0);
+        onClose={(isSuccess) => {
+          if (isSuccess) {
+            setSizeSelected(null);
+            setModelSelected(null);
+            setCountCart(0);
+          }
           setOpenDialogAddOrderType('');
           setOpenDialogAddOrder(false);
         }}

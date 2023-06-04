@@ -3,19 +3,20 @@ import { Fragment, useState } from 'react';
 import IconTrackingCurrent from 'assets/images/icon/TrackingCurrentPosition.svg';
 import IconTrackingOther from 'assets/images/icon/TrackingOtherPosition.svg';
 import Component from './styled';
-import { orderProcess, orderProcessDetail, orderType } from 'utils/other/EnvironmentValues';
+import { orderProcess, orderProcessDetail } from 'utils/other/EnvironmentValues';
 import FieldGroupView from 'components/elements/FieldGroupView';
 import { dateFormatter, moneyFormatter } from 'utils/other/Services';
 import OrderItem from 'components/elements/OrderItem';
 import DialogUpdateOrderProcess from 'components/views/DialogActionOrder/UpdateOrderProcess';
-import DialogUpdateOrderPrice from 'components/views/DialogActionOrder/UpdateOrderPrice';
+import { useSelector } from 'react-redux';
 
 export default function OrderView({ data }) {
+  const accountReducer = useSelector((state) => state.accountReducer);
+
   const [isOpenDialogUpdateProcess, setOpenDialogUpdateProcess] = useState(false);
-  const [isOpenDialogUpdatePrice, setOpenDialogUpdatePrice] = useState(false);
   const [isOpenBackdropTransactionImage, setIsOpenBackdropTransactionImage] = useState(false);
 
-  return (
+  return Object.keys(data).length > 0 ? (
     <Fragment>
       <Component>
         <Box gridArea="A">
@@ -23,51 +24,38 @@ export default function OrderView({ data }) {
             <Typography variant="h2" component="h2">
               Detail Pesanan
             </Typography>
-            <Button
-              variant="contained"
-              disabled={orderType.customization ? false : true}
-              sx={{ opacity: data.type === orderType.customization ? 1 : 0 }}
-              onClick={orderType.customization ? () => setOpenDialogUpdatePrice(true) : null}
-            >
-              Edit Harga
-            </Button>
           </Box>
           <Box>
             <FieldGroupView title="No. Pesanan" data={data.id} sx={{ marginBottom: '20px' }} withFrame />
-            <FieldGroupView title="Username Pelanggan" data={data.customerId} sx={{ marginBottom: '20px' }} withFrame />
-            <FieldGroupView title="Nama Pelanggan" data={data.customerName} sx={{ marginBottom: '30px' }} withFrame />
+            <FieldGroupView title="Nama Pelanggan" data={data.name} sx={{ marginBottom: '30px' }} withFrame />
+            <FieldGroupView title="Nomor Telepon" data={data.phoneNumber} sx={{ marginBottom: '30px' }} withFrame />
             <Typography variant="h4" component="h4" sx={{ color: '#666666', marginBottom: '10px', marginLeft: '2px' }}>
-              {data.type === orderType.customization ? 'Keterangan Kustomisasi' : 'Daftar Produk'}
+              Daftar Produk
             </Typography>
-            {(() => {
-              return data.type === orderType.customization ? (
-                <OrderItem info={{ ...data.otherInfo, images: data.orderInfo.images }} sx={{ marginBottom: '10px' }} />
-              ) : (
-                data.otherInfo.map((item, index) => (
-                  <OrderItem
-                    key={index}
-                    info={item}
-                    sx={{
-                      marginBottom: '10px',
-                      paddingBottom: data.type !== orderType.order && index !== data.otherInfo.length - 1 ? '30px' : '10px'
-                    }}
-                  />
-                ))
-              );
-            })()}
-            <FieldGroupView title="Catatan Pesanan" data={data.textNotes} sx={{ marginTop: '30px', marginBottom: '20px' }} />
-            <FieldGroupView title="Alamat Tujuan" data={data.destinationAddress} sx={{ marginBottom: '20px' }} />
-            <FieldGroupView title="Opsi Pengiriman" data={data.shippingInfo.name} sx={{ marginBottom: '20px' }} />
-            <FieldGroupView title="Metode Pembayaran" data={data.paymentMethod} sx={{ marginBottom: '20px' }} />
+            {data.products?.map((product, index) => (
+              <OrderItem
+                key={index}
+                data={product}
+                sx={{
+                  marginBottom: '10px',
+                  paddingBottom: '10px'
+                }}
+              />
+            ))}
+            <FieldGroupView title="Alamat Tujuan" data={data.address} sx={{ marginTop: '20px', marginBottom: '20px' }} />
             <FieldGroupView
               title="Tanggal Pesanan Dibuat"
               data={dateFormatter(data.dateCreated, 'eeee, d MMMM yyyy - HH:mm')}
               sx={{ marginBottom: '20px' }}
             />
-            <FieldGroupView
-              title="Tanggal Pesanan Selesai"
-              data={data.dateFinished ? dateFormatter(data.dateFinished, 'eeee, d MMMM yyyy - HH:mm') : '-'}
-            />
+            {data.dateFinished ? (
+              <FieldGroupView
+                title="Tanggal Pesanan Selesai"
+                data={data.dateFinished ? dateFormatter(data.dateFinished, 'eeee, d MMMM yyyy - HH:mm') : '-'}
+              />
+            ) : (
+              <></>
+            )}
           </Box>
         </Box>
         <Box gridArea="B">
@@ -75,9 +63,13 @@ export default function OrderView({ data }) {
             <Typography variant="h2" component="h2">
               Proses Pelacakan
             </Typography>
-            <Button variant="contained" onClick={() => setOpenDialogUpdateProcess(true)}>
-              Edit Proses
-            </Button>
+            {accountReducer.role === 'admin' ? (
+              <Button variant="contained" onClick={() => setOpenDialogUpdateProcess(true)}>
+                Edit Proses
+              </Button>
+            ) : (
+              <></>
+            )}
           </Box>
           <Box>
             <Box>
@@ -85,7 +77,7 @@ export default function OrderView({ data }) {
                 return (
                   <Fragment key={i}>
                     <Typography variant="p" component="p">
-                      {dateFormatter(e.date, 'd MMM')}
+                      {dateFormatter(e.date, 'dd/MM/yyyy')}
                       <br />
                       {dateFormatter(e.date, 'HH:mm')}
                     </Typography>
@@ -143,33 +135,32 @@ export default function OrderView({ data }) {
               Jumlah Produk
             </Typography>
             <Typography variant="p" component="p">
-              {data.totalCount ? data.totalCount : '-'}
+              {data.products ? data.products.reduce((a, b) => a + b.count, 0) : 0}
             </Typography>
             <Typography variant="h5" component="h5">
               Jumlah Harga Produk
             </Typography>
             <Typography variant="p" component="p">
-              {moneyFormatter(data.totalPrice ? data.totalPrice : '-')}
+              {moneyFormatter(data.products ? data.products.reduce((a, b) => a + b.price, 0) : 0)}
             </Typography>
             <Typography variant="h5" component="h5">
-              Biaya Ongkos Kirim
+              Jumlah Biaya Pengiriman
             </Typography>
             <Typography variant="p" component="p">
-              {moneyFormatter(data.shippingInfo.price)}
+              {moneyFormatter(data.shippingInfo?.price ?? 0)}
             </Typography>
             <Typography variant="h5" component="h5">
               Jumlah Pembayaran
             </Typography>
             <Typography variant="p" component="p">
-              {data.totalPrice && data.shippingInfo.price ? moneyFormatter(data.totalPrice + data.shippingInfo.price) : 'Rp. -'}
+              {data.products ? moneyFormatter(data.products.reduce((a, b) => a + b.price, 0) + (data.shippingInfo?.price ?? 0)) : 'Rp. -'}
             </Typography>
           </Box>
         </Box>
       </Component>
       <DialogUpdateOrderProcess open={isOpenDialogUpdateProcess} onClose={() => setOpenDialogUpdateProcess(false)} data={data} />
-      <DialogUpdateOrderPrice open={isOpenDialogUpdatePrice} onClose={() => setOpenDialogUpdatePrice(false)} data={data} />
       {(() => {
-        return data.transactionInfo.image ? (
+        return data.transactionInfo?.image ? (
           <Backdrop
             sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, padding: '2vw' }}
             open={isOpenBackdropTransactionImage}
@@ -194,5 +185,7 @@ export default function OrderView({ data }) {
         );
       })()}
     </Fragment>
+  ) : (
+    <></>
   );
 }

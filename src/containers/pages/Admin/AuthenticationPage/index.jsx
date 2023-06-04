@@ -61,8 +61,8 @@ export default function AuthenticationPage() {
   };
 
   useEffect(() => {
-    if (!(sidebarReducer.isOpen.findIndex((id) => id === 'authentication') > -1)) {
-      dispatch({ type: MENU_OPEN, id: 'authentication' });
+    if (!(sidebarReducer.isOpen.findIndex((id) => id === 'admin-account') > -1)) {
+      dispatch({ type: MENU_OPEN, id: 'admin-account' });
     }
     const listenerAdmins = onSnapshot(query(collection(db, 'admins'), where('username', '!=', accountReducer.username)), (snapshot) => {
       setAdmins(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })));

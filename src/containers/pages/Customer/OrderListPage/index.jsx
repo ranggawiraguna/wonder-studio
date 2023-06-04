@@ -1,16 +1,17 @@
 import { db } from 'config/firebase';
 import OrderGrid from 'containers/templates/OrderGrid';
-import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { defaultProductImage, orderProcess, orderType } from 'utils/other/EnvironmentValues';
+import { orderProcess, orderType } from 'utils/other/EnvironmentValues';
 import { MENU_OPEN, SET_ACTIVE } from 'utils/redux/action';
 import PageRoot from './styled';
 
 export default function OrderListPage() {
   const dispatch = useDispatch();
   const sidebarReducer = useSelector((state) => state.sidebarReducer);
+  const accountReducer = useSelector((state) => state.accountReducer);
   const searchReducer = useSelector((state) => state.searchReducer);
 
   const [orders, setOrders] = useState([]);
@@ -18,7 +19,7 @@ export default function OrderListPage() {
   const [isCompleteListener, setIsCompleteListener] = useState(false);
 
   useEffect(() => {
-    setDataList(orders.filter((order) => (order.id ?? "").toLowerCase().includes(searchReducer.value?.toLowerCase())));
+    setDataList(orders.filter((order) => (order.id ?? '').toLowerCase().includes(searchReducer.value?.toLowerCase())));
   }, [orders, searchReducer.value]);
 
   useEffect(() => {
@@ -28,38 +29,11 @@ export default function OrderListPage() {
 
     const listenerOrders = onSnapshot(collection(db, 'orders'), async (snapshot) => {
       setOrders(
-        true
-          ? Array.from(Array(10).keys()).map(() => ({}))
-          : (
-              await Promise.all(
-                snapshot.docs.map(async (document) => {
-                  const data = document.data();
-                  const productSnapshot = await getDoc(doc(db, 'products', data.orderInfo[0].productId));
-                  const product = productSnapshot.exists()
-                    ? { name: productSnapshot.data().name, photo: productSnapshot.data().images[0] }
-                    : {
-                        name: 'Produk',
-                        photo: defaultProductImage
-                      };
-
-                  return {
-                    id: document.id,
-                    customerId: data.customerId,
-                    dateCreated: data.dateCreated,
-                    processTracking: data.processTracking,
-                    transactionInfo: data.transactionInfo,
-                    productName: product.name,
-                    productPhotoUrl: product.photo,
-                    color: data.orderInfo[0].color,
-                    size: data.orderInfo[0].size,
-                    count: data.orderInfo[0].count,
-                    price: data.orderInfo[0].price,
-                    totalCount: data.orderInfo.map((e) => e.count).reduce((a, b) => a + b, 0),
-                    totalPrice: data.orderInfo.map((e) => e.price).reduce((a, b) => a + b, 0)
-                  };
-                })
-              )
-            ).filter((order) => !order.processTracking.map((process) => process.name).includes(orderProcess.orderFinished))
+        (await Promise.all(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })))).filter(
+          (order) =>
+            order.customerId === accountReducer.id &&
+            !(order.processTracking.includes(orderProcess.orderFinished) || order.processTracking.includes(orderProcess.orderCanceled))
+        )
       );
       setIsCompleteListener(true);
     });

@@ -50,15 +50,14 @@ export default function ProductViewPage() {
   const [product, setProduct] = useState({
     id: '',
     category: '',
-    colors: [],
     description: '',
     name: '',
-    images: ['', '', ''],
     price: 0,
+    images: ['', '', ''],
     rating: 5,
     sizes: [],
+    models:[],
     sold: 0,
-    stocks: []
   });
 
   const [imageBackdrop, setImageBackdrop] = useState('');

@@ -55,10 +55,10 @@ const adminSidebar = {
           ]
         },
         {
-          id: 'authentication',
-          title: 'Authentikasi',
+          id: 'admin-account',
+          title: 'Akun Admin',
           type: 'item',
-          url: '/admin/authentication',
+          url: '/admin/admin-account',
           icon: IconAccessible
         },
         {

@@ -18,11 +18,14 @@ import { useTheme } from '@emotion/react';
 import { forwardRef, Fragment, useState } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
 import PropTypes from 'prop-types';
-import AlertToast from 'components/elements/AlertToast';
 import { moneyFormatter, stringCapitalize } from 'utils/other/Services';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { defaultProductImage } from 'utils/other/EnvironmentValues';
+import { defaultProductImage, orderProcess } from 'utils/other/EnvironmentValues';
+import { collection, doc, setDoc } from 'firebase/firestore';
+import { db, storage } from 'config/firebase';
+import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { useSelector } from 'react-redux';
 
 const InputImageComponent = (props) => (
   <>
@@ -31,7 +34,9 @@ const InputImageComponent = (props) => (
   </>
 );
 
-const DialogAddOrder = forwardRef(({ open, onClose, type, data, ...others }, ref) => {
+const DialogAddOrder = forwardRef(({ open, onClose, type, data, currentPrice, showAlert, ...others }, widgetRef) => {
+  const accountReducer = useSelector((state) => state.accountReducer);
+
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -42,13 +47,6 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, ...others }, ref
     name: '',
     phoneNumber: '',
     address: ''
-  });
-
-  const [alertDescription, setAlertDescription] = useState({
-    isOpen: false,
-    type: 'info',
-    text: '',
-    transitionName: 'slideUp'
   });
 
   const handleOnChangeForm = (prop) => (event) => {
@@ -65,20 +63,70 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, ...others }, ref
     if (selectedImage.length > 0) {
       setSectionIndex(1);
     } else {
-      showAlertToast('warning', 'Silahkan masukkan gambar desain untuk melanjutkan');
+      showAlert('warning', 'Silahkan masukkan gambar desain untuk melanjutkan');
+    }
+  };
+
+  const handleDialogAction = async (actionName) => {
+    setAddOrderProcess(true);
+
+    const reference = doc(collection(db, `${actionName}s`));
+
+    const imagesRef = [];
+    let imageError = false;
+    const images = await Promise.all(
+      selectedImage.map(async (_, __) => {
+        imagesRef.push(ref(storage, `/${actionName}-images/${reference.id}-image${__}`));
+        try {
+          return await getDownloadURL((await uploadBytes(imagesRef[imagesRef.length - 1], _)).ref);
+        } catch {
+          imagesRef.pop();
+          imageError = true;
+        }
+      })
+    );
+
+    if (!imageError) {
+      const item = {
+        productId: data.product.id,
+        count: data.countCart,
+        images: images,
+        ...(data.sizeSelected ? { size: data.sizeSelected } : {}),
+        ...(data.modelSelected ? { model: data.modelSelected } : {}),
+        ...(actionName === 'order' ? { price: (currentPrice ?? 0) * data.countCart } : {})
+      };
+
+      setDoc(reference, {
+        customerId: accountReducer.id,
+        dateCreated: new Date(),
+        ...(actionName === 'cart' ? { images: images } : {}),
+        ...(actionName === 'cart' ? item : { products: [item] }),
+        ...(actionName === 'cart' ? {} : orderForm),
+        ...(actionName === 'cart' ? {} : { processTracking: [{ name: orderProcess.orderCreate, date: new Date() }] })
+      })
+        .catch(() => {
+          showAlert('warning', `Terjadi kesalahan, gagal menambahkan produk ke ${actionName === 'order' ? 'pesanan' : 'keranjang'}`);
+          setAddOrderProcess(false);
+          imagesRef.forEach((_) => deleteObject(_));
+        })
+        .then(() => {
+          setAddOrderProcess(false);
+          handleCloseDialog(true);
+          showAlert('success', `Berhasil menambahkan produk ke ${actionName === 'order' ? 'pesanan' : 'keranjang'}`);
+        });
+    } else {
+      showAlert('warning', `Terjadi kesalahan, gagal menambahkan produk ke ${actionName === 'order' ? 'pesanan' : 'keranjang'}`);
+      setAddOrderProcess(false);
+      imagesRef.forEach((_) => deleteObject(_));
     }
   };
 
   const handleAddCart = async () => {
     if (!isAddOrderProcess) {
       if (selectedImage.length > 0) {
-        showAlertToast('success', 'Berhasil menambahkan pesanan');
-        setAddOrderProcess(true);
-        setTimeout(() => {
-          handleCloseDialog();
-        }, 3000);
+        handleDialogAction('cart');
       } else {
-        showAlertToast('warning', 'Silahkan masukkan gambar desain untuk melanjutkan');
+        showAlert('warning', 'Silahkan masukkan gambar desain untuk melanjutkan');
       }
     }
   };
@@ -86,20 +134,16 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, ...others }, ref
   const handleAddOrder = async () => {
     if (!isAddOrderProcess) {
       if (Object.keys(orderForm).every((_) => Boolean(orderForm[_]))) {
-        showAlertToast('success', 'Berhasil menambahkan pesanan');
-        setAddOrderProcess(true);
-        setTimeout(() => {
-          handleCloseDialog();
-        }, 3000);
+        handleDialogAction('order');
       } else {
-        showAlertToast('warning', 'Silahkan lengkapi formulir pesanan dengan benar');
+        showAlert('warning', 'Silahkan lengkapi formulir pesanan dengan benar');
       }
     }
   };
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = (isSuccess) => {
     if (!isAddOrderProcess) {
-      onClose();
+      onClose(isSuccess);
       selectedImage.forEach((_) => URL.revokeObjectURL(_));
       setAddOrderProcess(false);
       setSelectedImage([]);
@@ -112,21 +156,6 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, ...others }, ref
     }
   };
 
-  const showAlertToast = (type, text) =>
-    setAlertDescription({
-      ...alertDescription,
-      isOpen: true,
-      type: type,
-      text: text
-    });
-
-  const currentPrice =
-    data.product.price ??
-    (data.product.sizeSelected != null && data.product.modelSelected != null
-      ? data.product.prices.find((_) => _.fields.contains(data.sizeSelected) && _.fields.contains(data.modelSelected)).value
-      : data.product.prices.find((_) => _.fields.contains(data.sizeSelected || data.modelSelected))
-    ).value;
-
   return (
     <Fragment>
       <Dialog
@@ -135,7 +164,7 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, ...others }, ref
         open={open}
         {...others}
         fullScreen={fullScreen}
-        onClose={handleCloseDialog}
+        onClose={() => handleCloseDialog(false)}
         aria-labelledby="responsive-dialog-title"
       >
         <DialogTitle>
@@ -143,7 +172,12 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, ...others }, ref
             <Typography variant="h3" component="h3">
               Formulir Pesanan
             </Typography>
-            <IconButton sx={{ position: 'absolute', right: 0, top: -12 }} color="inherit" onClick={handleCloseDialog} aria-label="close">
+            <IconButton
+              sx={{ position: 'absolute', right: 0, top: -12 }}
+              color="inherit"
+              onClick={() => handleCloseDialog(false)}
+              aria-label="close"
+            >
               <CloseIcon />
             </IconButton>
           </Grid>
@@ -185,15 +219,15 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, ...others }, ref
                       </Typography>
                       <Typography variant="h4" sx={{ fontWeight: 'normal', color: 'grey', marginBottom: 1 }}>
                         {(data.modelSelected != null ? `${stringCapitalize(data.modelSelected)}, ` : '') +
-                          (data.sizeSelected != null ? `${data.sizeSelected}, ` : '') +
+                          (data.sizeSelected != null ? `${stringCapitalize(data.sizeSelected)}, ` : '') +
                           (data.countCart != null ? `${data.countCart} ${stringCapitalize(data.product.uom)}` : '')}
                       </Typography>
                       <Typography variant="h4" sx={{ fontWeight: 'normal', color: 'grey' }}>
-                        {moneyFormatter(currentPrice)} / {stringCapitalize(data.product.uom)}
+                        {moneyFormatter(currentPrice ?? 0)} / {stringCapitalize(data.product.uom)}
                       </Typography>
                     </Box>
                     <Typography variant="h4" sx={{ marginBottom: 0.5, textAlign: 'end', paddingRight: 2, color: 'grey' }}>
-                      {moneyFormatter(currentPrice * data.countCart)}
+                      {moneyFormatter((currentPrice ?? 0) * data.countCart)}
                     </Typography>
                   </Box>
                 </Grid>
@@ -322,7 +356,6 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, ...others }, ref
           </Grid>
         </DialogActions>
       </Dialog>
-      <AlertToast description={alertDescription} setDescription={setAlertDescription} />
     </Fragment>
   );
 });
@@ -342,7 +375,7 @@ DialogAddOrder.defaultProps = {
     customerName: '',
     totalPrice: 0,
     orderInfo: [],
-    currentPrice: ''
+    currentPrice: 0
   }
 };
 

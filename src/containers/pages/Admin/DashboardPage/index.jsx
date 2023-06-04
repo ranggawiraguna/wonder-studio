@@ -61,7 +61,10 @@ export default function StoreDashboard() {
             path: 'transaction',
             data: orders.filter((order) => {
               const processList = order.processTracking.map((tracking) => tracking.name);
-              return order.transactionInfo.status === true && !processList.includes(orderProcess.orderFinished);
+              return (
+                processList.includes(orderProcess.paymentConfirmed) &&
+                !(processList.includes(orderProcess.orderFinished) || processList.includes(orderProcess.orderCanceled))
+              );
             }).length
           },
           {
@@ -70,7 +73,10 @@ export default function StoreDashboard() {
             path: 'transaction',
             data: orders.filter((order) => {
               const processList = order.processTracking.map((tracking) => tracking.name);
-              return order.transactionInfo.status === false && !processList.includes(orderProcess.orderFinished);
+              return (
+                !processList.includes(orderProcess.paymentConfirmed) &&
+                !(processList.includes(orderProcess.orderFinished) || processList.includes(orderProcess.orderCanceled))
+              );
             }).length
           },
           {
@@ -111,11 +117,7 @@ export default function StoreDashboard() {
             icon: IconCoin,
             unit: 'Rupiah',
             data: orders
-              .filter(
-                (order) =>
-                  dateConverter(order.dateCreated) >= new Date(new Date().setDate(new Date().getDate() - 30)) &&
-                  order.transactionInfo.status === true
-              )
+              .filter((order) => dateConverter(order.dateCreated) >= new Date(new Date().setDate(new Date().getDate() - 30)))
               .reduce((value, order) => {
                 switch (order.type) {
                   case orderType.order:
@@ -141,7 +143,7 @@ export default function StoreDashboard() {
             title: 'Pendapatan Penjualan',
             color: '#FF583C',
             path: 'revenue',
-            data: orders.filter((order) => order.transactionInfo.status === true),
+            data: orders,
             reducer: (dataFilter) => {
               let totalPrice = 0;
 
