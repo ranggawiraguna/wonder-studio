@@ -10,13 +10,13 @@ import IllustrationEmptyContent from 'assets/images/illustration/EmptyContent.sv
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from 'config/firebase';
 import OrderItem from 'components/elements/OrderItem';
+import AlertToast from 'components/elements/AlertToast';
 
-export default function OrderGrid({ data, type, isAdmin = true, isCompleteListener, isEmptySearch, showLastProcess = true }) {
+export default function OrderGrid({ data, isAdmin = true, isCompleteListener, isEmptySearch, showLastProcess = true }) {
   const navigate = useNavigate();
 
   const [selectedData, setSelectedData] = useState({
     id: '',
-    type: type,
     customerId: '',
     customerName: '',
     totalPrice: 0,
@@ -28,6 +28,21 @@ export default function OrderGrid({ data, type, isAdmin = true, isCompleteListen
   });
 
   const [isOpenDialogUpdateProcess, setOpenDialogUpdateProcess] = useState(false);
+
+  const [alertDescription, setAlertDescription] = useState({
+    isOpen: false,
+    type: 'info',
+    text: '',
+    transitionName: 'slideUp'
+  });
+
+  const showAlertToast = (type, text) =>
+    setAlertDescription({
+      ...alertDescription,
+      isOpen: true,
+      type: type,
+      text: text
+    });
 
   return data.length > 0 ? (
     <Fragment>
@@ -81,12 +96,12 @@ export default function OrderGrid({ data, type, isAdmin = true, isCompleteListen
                       const customerSnapshot = await getDoc(doc(db, 'customers', element.customerId));
                       setSelectedData({
                         id: element.id,
-                        type: type,
                         customerId: element.customerId,
-                        customerName: customerSnapshot.exists() ? customerSnapshot.data().fullname : '',
-                        totalPrice: element.totalPrice,
-                        processTracking: element.processTracking,
-                        transactionInfo: element.transactionInfo
+                        customerUsername: customerSnapshot.exists() ? customerSnapshot.data().username : '',
+                        customerName: element.name,
+                        totalPrice: element.products.reduce((a, b) => a + b.price, 0),
+                        shippingPrice: element.shippingPrice,
+                        processTracking: element.processTracking
                       });
                       setOpenDialogUpdateProcess(true);
                     }}
@@ -104,7 +119,13 @@ export default function OrderGrid({ data, type, isAdmin = true, isCompleteListen
           ));
         })()}
       </Component>
-      <DialogUpdateOrderProcess open={isOpenDialogUpdateProcess} onClose={() => setOpenDialogUpdateProcess(false)} data={selectedData} />
+      <DialogUpdateOrderProcess
+        showAlert={showAlertToast}
+        open={isOpenDialogUpdateProcess}
+        onClose={() => setOpenDialogUpdateProcess(false)}
+        data={selectedData}
+      />
+      <AlertToast description={alertDescription} setDescription={setAlertDescription} />
     </Fragment>
   ) : isCompleteListener && !isEmptySearch ? (
     <Box

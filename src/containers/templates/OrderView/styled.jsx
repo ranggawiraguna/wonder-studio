@@ -12,7 +12,7 @@ export default styled(Box)(({ theme }) => ({
       alignItems: 'center',
       gap: 10,
       marginBottom: 20,
-      '& > button': {
+      '& button': {
         padding: '4px 15px',
         backgroundColor: '#FF583C',
         fontWeight: 'bold'
@@ -64,7 +64,7 @@ export default styled(Box)(({ theme }) => ({
               marginTop: 8,
               marginBottom: 5
             },
-            '& > button': {
+            '& button, & span': {
               fontSize: 14,
               padding: '3px 15px',
               textShadow: '-0.1px -0.1px 0 #ffffff, 0.1px -0.1px 0 #ffffff, -0.1px 0.1px 0 #ffffff, 0.1px 0.1px 0 #ffffff',

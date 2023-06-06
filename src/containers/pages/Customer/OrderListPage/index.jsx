@@ -32,7 +32,7 @@ export default function OrderListPage() {
         (await Promise.all(snapshot.docs.map((document) => ({ id: document.id, ...document.data() })))).filter(
           (order) =>
             order.customerId === accountReducer.id &&
-            !(order.processTracking.includes(orderProcess.orderFinished) || order.processTracking.includes(orderProcess.orderCanceled))
+            !(order.processTracking.map((e) => e.name).includes(orderProcess.orderFinished) || order.processTracking.map((e) => e.name).includes(orderProcess.orderCanceled))
         )
       );
       setIsCompleteListener(true);

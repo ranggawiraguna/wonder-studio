@@ -19,18 +19,14 @@ import { useTheme } from '@emotion/react';
 import { forwardRef, Fragment, useEffect, useState } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
 import PropTypes from 'prop-types';
-import AlertToast from 'components/elements/AlertToast';
 import { orderProcess, orderProcessDetail, orderType } from 'utils/other/EnvironmentValues';
 import { moneyFormatter } from 'utils/other/Services';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from 'config/firebase';
-import { useLocation } from 'react-router';
 
-const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, ...others }, ref) => {
+const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, ...others }, ref) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-
-  const location = useLocation();
 
   const [isUpdateProcess, setIsUpdateProcess] = useState(false);
 
@@ -42,38 +38,14 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, ...others },
     }
   }, [open]);
 
-  const [alertDescription, setAlertDescription] = useState({
-    isOpen: false,
-    type: 'info',
-    text: '',
-    transitionName: 'slideUp'
-  });
-
   const getProcessOptions = () => {
     if (data.processTracking.length > 0) {
-      switch (location.pathname.split('/')[1]) {
-        case 'admin':
-          return Object.keys(orderProcess).filter((process) =>
-            (data.type === 'order'
-              ? [orderProcess.shippedFromWarehouse]
-              : data.processTracking[data.processTracking.length - 1].name === orderProcess.waitingProductionCheck
-              ? [orderProcess.productionCheckConfirmed, orderProcess.productionCheckCanceled]
-              : [orderProcess.shippedFromWarehouse]
-            ).includes(process)
-          );
-        case 'store':
-          return Object.keys(orderProcess).filter(
-            (process) =>
-              ![orderProcess.shippedFromWarehouse, orderProcess.productionCheckConfirmed, orderProcess.productionCheckCanceled].includes(
-                process
-              ) &&
-              Object.keys(orderProcess).findIndex((name) => name === process) >
-                Object.keys(orderProcess).findIndex((name) => name === data.processTracking[data.processTracking.length - 1].name)
-          );
-
-        default:
-          return [];
-      }
+      return Object.keys(orderProcess).filter(
+        (process) =>
+          process !== orderProcess.waitingPayment &&
+          Object.keys(orderProcess).findIndex((name) => name === process) >
+            Object.keys(orderProcess).findIndex((name) => name === data.processTracking[data.processTracking.length - 1].name)
+      );
     } else {
       return [];
     }
@@ -84,53 +56,47 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, ...others },
       setIsUpdateProcess(true);
 
       if (currentProcess !== '') {
-        let newData = {
-          processTracking: [
-            ...data.processTracking,
-            {
-              date: new Date(),
-              name: currentProcess
-            }
-          ]
-        };
-
-        if (currentProcess === orderProcess.paymentConfirmed) {
-          newData = {
-            ...newData,
-            transactionInfo: {
-              ...data.transactionInfo,
-              status: true
-            }
+        if (currentProcess !== orderProcess.orderCanceled ? data.shippingPrice : true) {
+          let newData = {
+            processTracking: [
+              ...data.processTracking,
+              {
+                date: new Date(),
+                name: currentProcess
+              }
+            ]
           };
-        }
 
-        if (currentProcess === orderProcess.orderFinished) {
-          newData = {
-            ...newData,
-            dateFinished: new Date()
-          };
-        }
+          if (currentProcess === orderProcess.paymentConfirmed) {
+            newData = {
+              ...newData,
+              transactionInfo: {
+                ...data.transactionInfo,
+                status: true
+              }
+            };
+          }
 
-        await updateDoc(doc(db, 'orders', data.id), newData);
-        await updateDoc(doc(db, 'customers', data.customerId), {
-          notifications: [
-            ...(await getDoc(doc(db, 'customers', data.customerId))).data().notifications,
-            {
-              date: new Date(),
-              orderId: data.id,
-              orderType: data.type,
-              processType: currentProcess
-            }
-          ]
-        });
-        setCurrentProcess('');
-        showAlertToast('success', 'Berhasil memperbarui informasi proses pesanan');
-        setTimeout(() => {
+          if (currentProcess === orderProcess.orderFinished) {
+            newData = {
+              ...newData,
+              dateFinished: new Date()
+            };
+          }
+
+          await updateDoc(doc(db, 'orders', data.id), newData);
+          setCurrentProcess('');
+          showAlert('success', 'Berhasil memperbarui informasi proses pesanan');
+          setTimeout(() => {
+            setIsUpdateProcess(false);
+            handleCloseUpdate();
+          }, 2000);
+        } else {
+          showAlert('warning', 'Silahkan input biaya pengiriman pada pesanan detail terlebih dahulu');
           setIsUpdateProcess(false);
-          handleCloseUpdate();
-        }, 2000);
+        }
       } else {
-        showAlertToast('warning', 'Silahkan pilih proses untuk memperbarui proses pesanan');
+        showAlert('warning', 'Silahkan pilih proses untuk memperbarui proses pesanan');
         setIsUpdateProcess(false);
       }
     }
@@ -144,14 +110,6 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, ...others },
       }, 500);
     }
   };
-
-  const showAlertToast = (type, text) =>
-    setAlertDescription({
-      ...alertDescription,
-      isOpen: true,
-      type: type,
-      text: text
-    });
 
   return (
     <Fragment>
@@ -207,7 +165,7 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, ...others },
                 :
               </Typography>
               <Typography variant="h5" component="h5">
-                {data.customerId}
+                {data.customerUsername}
               </Typography>
               <Typography variant="h5" component="h5">
                 Nama
@@ -290,7 +248,6 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, ...others },
           </Grid>
         </DialogActions>
       </Dialog>
-      <AlertToast description={alertDescription} setDescription={setAlertDescription} />
     </Fragment>
   );
 });

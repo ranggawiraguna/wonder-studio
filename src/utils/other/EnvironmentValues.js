@@ -62,23 +62,19 @@ const reverseTimelineValue = (value, timeline) => {
 
 const orderProcess = {
   orderCreate: 'orderCreate',
-  orderCanceled: 'orderCanceled',
   waitingPayment: 'waitingPayment',
   paymentConfirmed: 'paymentConfirmed',
   prepareDesain: 'prepareDesain',
   printingProcess: 'printingProcess',
   orderProcess: 'orderProcess',
-  orderFinished: 'orderFinished'
+  orderFinished: 'orderFinished',
+  orderCanceled: 'orderCanceled',
 };
 
 const orderProcessDetail = {
   [orderProcess.orderCreate]: {
     title: 'Pesanan telah dibuat',
     description: 'Pesanan Anda telah dibuat, menunggu konfirmasi selanjutnya'
-  },
-  [orderProcess.orderCanceled]: {
-    title: 'Pesanan dibatalkan',
-    description: 'Pesanan Anda telah dibatalkan, silhakan hubungi admin untuk keterangan lebih lanjut'
   },
   [orderProcess.waitingPayment]: {
     title: 'Menunggu pembayaran pesanan',
@@ -103,7 +99,11 @@ const orderProcessDetail = {
   [orderProcess.orderFinished]: {
     title: 'Pesanan telah sampai',
     description: 'Paket Anda sudah sampai tujuan, silahkan untuk memberikan penilaian terhadap produk yang telah Anda dapatkan'
-  }
+  },
+  [orderProcess.orderCanceled]: {
+    title: 'Pesanan dibatalkan',
+    description: 'Pesanan Anda telah dibatalkan, silhakan hubungi admin untuk keterangan lebih lanjut'
+  },
 };
 
 const defaultProductImage =

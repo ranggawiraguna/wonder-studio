@@ -9,12 +9,61 @@ import { dateFormatter, moneyFormatter } from 'utils/other/Services';
 import OrderItem from 'components/elements/OrderItem';
 import DialogUpdateOrderProcess from 'components/views/DialogActionOrder/UpdateOrderProcess';
 import { useSelector } from 'react-redux';
+import DialogUpdateDeliveryPrice from 'components/views/DialogActionOrder/UpdateDeliveryPrice';
+import AlertToast from 'components/elements/AlertToast';
+import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { db, storage } from 'config/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 
 export default function OrderView({ data }) {
   const accountReducer = useSelector((state) => state.accountReducer);
 
   const [isOpenDialogUpdateProcess, setOpenDialogUpdateProcess] = useState(false);
+  const [isOpenDialogUpdateDeliveryPrice, setOpenDialogUpdateDeliveryPrice] = useState(false);
   const [isOpenBackdropTransactionImage, setIsOpenBackdropTransactionImage] = useState(false);
+
+  const [alertDescription, setAlertDescription] = useState({
+    isOpen: false,
+    type: 'info',
+    text: '',
+    transitionName: 'slideUp'
+  });
+
+  const handleUploadProofOfPayment = async (_) => {
+    if (_.target?.files?.[0]) {
+      let imageUrl;
+      try {
+        imageUrl = await getDownloadURL((await uploadBytes(ref(storage, `/order-payments/${data.id}`), _.target?.files?.[0])).ref);
+      } catch {
+        showAlertToast('warning', 'Terjadi kesalahan, silahkan coba lagi');
+      }
+
+      if (imageUrl) {
+        updateDoc(doc(db, 'orders', data.id), {
+          transactionInfo: {
+            ...data.transactionInfo,
+            image: imageUrl,
+            date: new Date()
+          }
+        })
+          .catch(() => {
+            showAlertToast('warning', 'Terjadi kesalahan, silahkan coba lagi');
+            deleteObject(ref(storage, `/order-payments/${data.id}`));
+          })
+          .then(() => {
+            showAlertToast('success', 'Berhasil mengupload bukti pembayaran');
+          });
+      }
+    }
+  };
+
+  const showAlertToast = (type, text) =>
+    setAlertDescription({
+      ...alertDescription,
+      isOpen: true,
+      type: type,
+      text: text
+    });
 
   return Object.keys(data).length > 0 ? (
     <Fragment>
@@ -24,6 +73,28 @@ export default function OrderView({ data }) {
             <Typography variant="h2" component="h2">
               Detail Pesanan
             </Typography>
+            <Button
+              variant="contained"
+              disabled={
+                accountReducer.role === 'customer' ||
+                (data.processTracking ?? []).map((_) => _.name).includes(orderProcess.paymentConfirmed)
+              }
+              sx={{
+                opacity:
+                  accountReducer.role === 'customer' ||
+                  (data.processTracking ?? []).map((_) => _.name).includes(orderProcess.paymentConfirmed)
+                    ? 0
+                    : 1
+              }}
+              onClick={
+                accountReducer.role === 'customer' ||
+                (data.processTracking ?? []).map((_) => _.name).includes(orderProcess.paymentConfirmed)
+                  ? null
+                  : () => setOpenDialogUpdateDeliveryPrice(true)
+              }
+            >
+              Edit Biaya Pengiriman
+            </Button>
           </Box>
           <Box>
             <FieldGroupView title="No. Pesanan" data={data.id} sx={{ marginBottom: '20px' }} withFrame />
@@ -96,25 +167,63 @@ export default function OrderView({ data }) {
                       <Typography variant="p" component="p">
                         {orderProcessDetail[e.name].description}
                       </Typography>
+                      {e.name === orderProcess.waitingPayment &&
+                      data.processTracking[data.processTracking.length - 1].name === orderProcess.waitingPayment &&
+                      accountReducer.role === 'customer' ? (
+                        <Box sx={{ border: '2px solid grey', borderRadius: 1, marginTop: 1, padding: 1 }}>
+                          <Typography variant="h5" component="h5" sx={{ fontWeight: 'bold' }}>
+                            Bank Central Asia (BCA)
+                          </Typography>
+                          <Typography variant="h5" component="h5">
+                            Muhammad Rifqi Ramadhan
+                          </Typography>
+                          <Typography variant="h5" component="h5">
+                            4061565889
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <></>
+                      )}
                       {e.name === orderProcess.waitingPayment ? (
                         <Fragment>
                           <Typography variant="p" component="p">
-                            Status Pembayaran :&nbsp; {data.transactionInfo.image ? 'Sudah' : 'Belum'} di upload
+                            Status Pembayaran :&nbsp; {data.transactionInfo?.image ? 'Sudah' : 'Belum'} di upload
                           </Typography>
-                          <Button
-                            variant="contained"
-                            className={data.transactionInfo.image ? 'active' : 'inactive'}
-                            onClick={
-                              data.transactionInfo.image
-                                ? () => {
-                                    document.body.style = 'overflow: hidden';
-                                    setIsOpenBackdropTransactionImage(true);
-                                  }
-                                : null
-                            }
-                          >
-                            Lihat Pembayaran
-                          </Button>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {accountReducer.role === 'customer' ? (
+                              <>
+                                <input
+                                  hidden
+                                  id="file-attachment"
+                                  accept="image/*"
+                                  type="file"
+                                  multiple
+                                  onChange={handleUploadProofOfPayment}
+                                />
+                                <label htmlFor="file-attachment">
+                                  <Button component="span" variant="contained" className={'active'}>
+                                    Upload
+                                  </Button>
+                                </label>
+                              </>
+                            ) : (
+                              <></>
+                            )}
+                            <Button
+                              variant="contained"
+                              className={data.transactionInfo?.image ? 'active' : 'inactive'}
+                              onClick={
+                                data.transactionInfo?.image
+                                  ? () => {
+                                      document.body.style = 'overflow: hidden';
+                                      setIsOpenBackdropTransactionImage(true);
+                                    }
+                                  : null
+                              }
+                            >
+                              Lihat
+                            </Button>
+                          </Box>
                         </Fragment>
                       ) : (
                         <></>
@@ -147,43 +256,53 @@ export default function OrderView({ data }) {
               Jumlah Biaya Pengiriman
             </Typography>
             <Typography variant="p" component="p">
-              {moneyFormatter(data.shippingInfo?.price ?? 0)}
+              {moneyFormatter(data.shippingPrice ?? 0)}
             </Typography>
             <Typography variant="h5" component="h5">
               Jumlah Pembayaran
             </Typography>
             <Typography variant="p" component="p">
-              {data.products ? moneyFormatter(data.products.reduce((a, b) => a + b.price, 0) + (data.shippingInfo?.price ?? 0)) : 'Rp. -'}
+              {data.products ? moneyFormatter(data.products.reduce((a, b) => a + b.price, 0) + (data.shippingPrice ?? 0)) : 'Rp. -'}
             </Typography>
           </Box>
         </Box>
       </Component>
-      <DialogUpdateOrderProcess open={isOpenDialogUpdateProcess} onClose={() => setOpenDialogUpdateProcess(false)} data={data} />
-      {(() => {
-        return data.transactionInfo?.image ? (
-          <Backdrop
-            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, padding: '2vw' }}
-            open={isOpenBackdropTransactionImage}
-            onClick={() => {
-              document.body.style = '';
-              setIsOpenBackdropTransactionImage(false);
+      <DialogUpdateOrderProcess
+        showAlert={showAlertToast}
+        open={isOpenDialogUpdateProcess}
+        onClose={() => setOpenDialogUpdateProcess(false)}
+        data={data}
+      />
+      <DialogUpdateDeliveryPrice
+        showAlert={showAlertToast}
+        open={isOpenDialogUpdateDeliveryPrice}
+        onClose={() => setOpenDialogUpdateDeliveryPrice(false)}
+        data={data}
+      />
+      {data.transactionInfo?.image ? (
+        <Backdrop
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, padding: '2vw' }}
+          open={isOpenBackdropTransactionImage}
+          onClick={() => {
+            document.body.style = '';
+            setIsOpenBackdropTransactionImage(false);
+          }}
+        >
+          <Box
+            sx={{
+              width: '100%',
+              height: '100%',
+              backgroundImage: `url(${data.transactionInfo?.image})`,
+              backgroundPosition: 'center',
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat'
             }}
-          >
-            <Box
-              sx={{
-                width: '100%',
-                height: '100%',
-                backgroundImage: `url(${data.transactionInfo.image})`,
-                backgroundPosition: 'center',
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-          </Backdrop>
-        ) : (
-          <></>
-        );
-      })()}
+          />
+        </Backdrop>
+      ) : (
+        <></>
+      )}
+      <AlertToast description={alertDescription} setDescription={setAlertDescription} />
     </Fragment>
   ) : (
     <></>

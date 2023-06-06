@@ -1,6 +1,6 @@
 import { Avatar, Collapse, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import TableDisplay from 'containers/templates/TableDisplay';
-import { orderType, tableDisplayType } from 'utils/other/EnvironmentValues';
+import { tableDisplayType } from 'utils/other/EnvironmentValues';
 import PageRoot from './styled';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -20,38 +20,6 @@ const RowDisplay = ({ customer, customerOrders }) => {
   const [open, setOpen] = useState(false);
 
   const getBorder = (condition) => (condition ? 0 : {});
-
-  const getTotalCount = (order) => {
-    switch (order.type) {
-      case orderType.order:
-        return order.orderInfo.map((e) => e.count).reduce((a, b) => a + b, 0);
-
-      case orderType.preOrder:
-        return order.orderInfo.map((e) => e.sizes.reduce((a, b) => a + b.count, 0)).reduce((a, b) => a + b, 0);
-
-      case orderType.customization:
-        return order.orderInfo.sizes.reduce((a, b) => a + b.count, 0);
-
-      default:
-        return 0;
-    }
-  };
-
-  const getTotalPrice = (order) => {
-    switch (order.type) {
-      case orderType.order:
-        return order.orderInfo.map((e) => e.price).reduce((a, b) => a + b, 0);
-
-      case orderType.preOrder:
-        return order.orderInfo.map((e) => e.price).reduce((a, b) => a + b, 0);
-
-      case orderType.customization:
-        return order.orderInfo.price;
-
-      default:
-        return 0;
-    }
-  };
 
   return (
     <Fragment>
@@ -108,8 +76,8 @@ const RowDisplay = ({ customer, customerOrders }) => {
                         <TableCell>{dateFormatter(order.dateCreated, 'd MMMM yyyy')}</TableCell>
                         <TableCell>{dateFormatter(order.dateCreated, 'HH:mm')}</TableCell>
                         <TableCell>{order.id}</TableCell>
-                        <TableCell>{getTotalCount(order)}</TableCell>
-                        <TableCell>{getTotalPrice(order) > 0 ? moneyFormatter(getTotalPrice(order)) : 'Rp. -'}</TableCell>
+                        <TableCell>{order.products.reduce((a, b) => a + b.count, 0)}</TableCell>
+                        <TableCell>{moneyFormatter(order.products.reduce((a, b) => a + b.price, 0))}</TableCell>
                       </TableRow>
                     ))
                   ) : (
@@ -154,8 +122,8 @@ export default function CustomerListPage() {
   }, [customers, searchReducer.value]);
 
   useEffect(() => {
-    if (!(sidebarReducer.isOpen.findIndex((id) => id === 'customer') > -1)) {
-      dispatch({ type: MENU_OPEN, id: 'customer' });
+    if (!(sidebarReducer.isOpen.findIndex((id) => id === 'daftar-pelanggan') > -1)) {
+      dispatch({ type: MENU_OPEN, id: 'daftar-pelanggan' });
     }
 
     const listenerCustomers = onSnapshot(query(collection(db, 'customers'), orderBy('username')), (snapshot) =>
