@@ -3,11 +3,6 @@ const tableDisplayType = {
   card: 'card'
 };
 
-const orderType = {
-  order: 'order',
-  preOrder: 'preOrder',
-  customization: 'customization'
-};
 
 const timeline = [
   {
@@ -111,7 +106,6 @@ const defaultProductImage =
 
 export {
   tableDisplayType,
-  orderType,
   timeline,
   timelineValues,
   reverseTimelineValue,

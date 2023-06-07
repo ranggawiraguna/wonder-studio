@@ -7,7 +7,7 @@ import IconCoin from 'assets/images/icon/DashboardCardCoin.png';
 import PageRoot from './styled';
 import { collection, limit, onSnapshot, query } from 'firebase/firestore';
 import { db } from 'config/firebase';
-import { orderProcess, orderType } from 'utils/other/EnvironmentValues';
+import { orderProcess } from 'utils/other/EnvironmentValues';
 import { dateConverter } from 'utils/other/Services';
 
 export default function StoreDashboard() {
@@ -25,11 +25,8 @@ export default function StoreDashboard() {
     const listenerOrders = onSnapshot(collection(db, 'orders'), (snapshot) =>
       setOrders(
         snapshot.docs.map((document) => ({
-          dateCreated: document.data().dateCreated,
-          type: document.data().type,
-          processTracking: document.data().processTracking,
-          transactionInfo: document.data().transactionInfo,
-          orderInfo: document.data().orderInfo
+          id: document.data().id,
+          ...document.data()
         }))
       )
     );
@@ -37,7 +34,8 @@ export default function StoreDashboard() {
     const listenerProducts = onSnapshot(query(collection(db, 'products'), limit(5)), (snapshot) =>
       setProducts(
         snapshot.docs.map((document) => ({
-          name: document.data().name,
+          id: document.data().id,
+          ...document.data(),
           sold: document.data().sold ?? 1
         }))
       )
@@ -96,21 +94,7 @@ export default function StoreDashboard() {
                   dateConverter(order.dateCreated) >= new Date(new Date().setDate(new Date().getDate() - 30)) &&
                   order.processTracking.map((process) => process.name).includes(orderProcess.orderFinished)
               )
-              .reduce((value, order) => {
-                switch (order.type) {
-                  case orderType.order:
-                    return value + order.orderInfo.reduce((a, b) => a + b.count, 0);
-
-                  case orderType.preOrder:
-                    return value + order.orderInfo.map((e) => e.sizes.reduce((a, b) => a + b.count, 0)).reduce((a, b) => a + b, 0);
-
-                  case orderType.customization:
-                    return value + order.orderInfo.sizes.reduce((a, b) => a + b.count, 0);
-
-                  default:
-                    return value + 0;
-                }
-              }, 0)
+              .reduce((a, b) => a + b.products.length, 0)
           },
           {
             title: 'Total-Pendapatan',
@@ -118,21 +102,7 @@ export default function StoreDashboard() {
             unit: 'Rupiah',
             data: orders
               .filter((order) => dateConverter(order.dateCreated) >= new Date(new Date().setDate(new Date().getDate() - 30)))
-              .reduce((value, order) => {
-                switch (order.type) {
-                  case orderType.order:
-                    return value + order.orderInfo.reduce((a, b) => a + b.price, 0);
-
-                  case orderType.preOrder:
-                    return value + order.orderInfo.reduce((a, b) => a + b.price, 0);
-
-                  case orderType.customization:
-                    return value + order.orderInfo.price;
-
-                  default:
-                    return 0;
-                }
-              }, 0)
+              .reduce((a, b) => a + b.products.reduce((a, b) => a + b.price, 0) + (b.shippingPrice ?? 0), 0)
           },
           {
             title: 'Produk Terlaris',
@@ -144,31 +114,8 @@ export default function StoreDashboard() {
             color: '#FF583C',
             path: 'revenue',
             data: orders,
-            reducer: (dataFilter) => {
-              let totalPrice = 0;
-
-              dataFilter.forEach((data) => {
-                switch (data.type) {
-                  case orderType.order:
-                    totalPrice += data.orderInfo.reduce((a, b) => a + b.price, 0);
-                    break;
-
-                  case orderType.preOrder:
-                    totalPrice += data.orderInfo.reduce((a, b) => a + b.price, 0);
-                    break;
-
-                  case orderType.customization:
-                    totalPrice += data.orderInfo.price;
-                    break;
-
-                  default:
-                    totalPrice += 0;
-                    break;
-                }
-              });
-
-              return totalPrice;
-            }
+            reducer: (dataFilter) =>
+              dataFilter.reduce((a, b) => a + b.products.reduce((a, b) => a + b.price, 0) + (dataFilter.shippingPrice ?? 0), 0)
           }
         ]}
       />

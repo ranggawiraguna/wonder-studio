@@ -3,7 +3,7 @@ import TableDisplay from 'containers/templates/TableDisplay';
 import IconStatusDelayed from 'assets/images/icon/TransactionStatusDelayed.svg';
 import IconStatusRunning from 'assets/images/icon/TransactionStatusRunning.svg';
 import { Fragment, useEffect, useState } from 'react';
-import { orderProcess, orderType, tableDisplayType } from 'utils/other/EnvironmentValues';
+import { orderProcess, tableDisplayType } from 'utils/other/EnvironmentValues';
 import PageRoot from './styled';
 import { useDispatch, useSelector } from 'react-redux';
 import { MENU_OPEN } from 'utils/redux/action';
@@ -33,27 +33,15 @@ export default function TransactionPage() {
               const processList = document.data().processTracking.map((tracking) => tracking.name);
               return !processList.includes(orderProcess.orderFinished) && !processList.includes(orderProcess.orderCanceled);
             })
-            .map(async (document) => ({
-              id: document.id,
-              customerId: document.data().customerId,
-              customerName: (await getDoc(doc(db, 'customers', document.data().customerId))).data().fullname,
-              image: document.data().transactionInfo.image,
-              price: (() => {
-                switch (document.data().type) {
-                  case orderType.order:
-                    return document.data().orderInfo.reduce((a, b) => a + b.price, 0);
-
-                  case orderType.preOrder:
-                    return document.data().orderInfo.reduce((a, b) => a + b.price, 0);
-
-                  case orderType.customization:
-                    return document.data().orderInfo.price;
-
-                  default:
-                    return 0;
-                }
-              })()
-            }))
+            .map(async (document) => {
+              const customerSnapshot = await getDoc(doc(db, 'customers', document.data().customerId));
+              return {
+                id: document.id,
+                customerUsername: customerSnapshot.exists() ? customerSnapshot.data().username : '',
+                customerProfile: customerSnapshot.exists() ? customerSnapshot.data().photoUrl : '',
+                ...document.data()
+              };
+            })
         )
       )
     );
@@ -77,14 +65,25 @@ export default function TransactionPage() {
               <TableRow sx={{ height: index === 0 ? 20 : 8 }} />
               <TableRow className="card">
                 <TableCell align={tableAlignContent[0]} sx={{ width: '74px', padding: '7px' }}>
-                  <Box sx={{ width: 60, height: 60, backgroundColor: 'lightgrey', borderRadius: '5px' }} />
+                  <Box
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      backgroundColor: 'lightgrey',
+                      borderRadius: '5px',
+                      backgroundImage: `url(${order.customerProfile})`,
+                      backgroundPosition:'center',
+                      backgroundSize:'cover',
+                      backgroundRepeat:'no-repeat'
+                    }}
+                  />
                 </TableCell>
                 <TableCell align={tableAlignContent[1]}>
                   <Typography variant="h4" component="h4">
                     {order.customerName}
                   </Typography>
                   <Typography variant="h5" component="h5">
-                    username : {order.customerId}
+                    {order.customerUsername}
                   </Typography>
                 </TableCell>
                 <TableCell align={tableAlignContent[2]}>
@@ -94,18 +93,14 @@ export default function TransactionPage() {
                 </TableCell>
                 <TableCell align={tableAlignContent[3]}>
                   <Typography variant="h5" component="h5">
-                    {moneyFormatter(order.price)}
+                    {moneyFormatter(order.products.reduce((a, b) => a + b.price, 0) + (order.shippingPrice ?? 0))}
                   </Typography>
                 </TableCell>
                 <TableCell align={tableAlignContent[4]}>
                   <CardMedia
                     component="img"
                     className="data-status"
-                    src={
-                      order.processTracking.includes(orderProcess.paymentConfirmed)
-                        ? IconStatusRunning
-                        : IconStatusDelayed
-                    }
+                    src={order.processTracking.includes(orderProcess.paymentConfirmed) ? IconStatusRunning : IconStatusDelayed}
                   />
                 </TableCell>
               </TableRow>

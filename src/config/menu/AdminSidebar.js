@@ -55,10 +55,10 @@ const adminSidebar = {
           ]
         },
         {
-          id: 'admin-account',
-          title: 'Akun Admin',
+          id: 'account',
+          title: 'Admin',
           type: 'item',
-          url: '/admin/admin-account',
+          url: '/admin/account',
           icon: IconAccessible
         },
         {

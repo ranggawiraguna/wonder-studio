@@ -4,7 +4,7 @@ import { collection, onSnapshot } from 'firebase/firestore';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { orderProcess, orderType } from 'utils/other/EnvironmentValues';
+import { orderProcess } from 'utils/other/EnvironmentValues';
 import { MENU_OPEN, SET_ACTIVE } from 'utils/redux/action';
 import PageRoot from './styled';
 
@@ -51,7 +51,6 @@ export default function OrderListPage() {
     <PageRoot>
       <OrderGrid
         data={dataList}
-        type={orderType.order}
         isAdmin={false}
         isCompleteListener={isCompleteListener}
         isEmptySearch={orders.length > 0 && dataList.length === 0}

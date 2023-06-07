@@ -12,9 +12,9 @@ import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from 'config/firebase';
 import { dateFormatter, moneyFormatter } from 'utils/other/Services';
 
-const tableHeadContent = ['', 'Username', 'Nama Lengkap', 'Foto Profil', 'Jenis Kelamin', 'No. Handphone', 'Email', 'Alamat'];
+const tableHeadContent = ['', 'Username', 'Nama Lengkap', 'Foto Profil', 'Email'];
 
-const tableAlignContent = ['center', 'left', 'left', 'center', 'left', 'left', 'left', 'left'];
+const tableAlignContent = ['center', 'left', 'left', 'center', 'left'];
 
 const RowDisplay = ({ customer, customerOrders }) => {
   const [open, setOpen] = useState(false);
@@ -38,17 +38,8 @@ const RowDisplay = ({ customer, customerOrders }) => {
         <TableCell sx={{ border: getBorder(open) }} align={tableAlignContent[3]}>
           <Avatar sx={{ margin: '0 auto' }} src={customer.photoUrl} />
         </TableCell>
-        <TableCell sx={{ border: getBorder(open) }} align={tableAlignContent[4]}>
-          {customer.gender}
-        </TableCell>
-        <TableCell sx={{ border: getBorder(open) }} align={tableAlignContent[5]}>
-          {customer.phoneNumber}
-        </TableCell>
         <TableCell sx={{ border: getBorder(open) }} align={tableAlignContent[6]}>
           {customer.email}
-        </TableCell>
-        <TableCell sx={{ border: getBorder(open) }} align={tableAlignContent[7]}>
-          {customer.address}
         </TableCell>
       </TableRow>
       <TableRow>

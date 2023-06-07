@@ -2,11 +2,11 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typog
 import ChartSingle from 'components/elements/ChartSingle';
 import { db } from 'config/firebase';
 import AccordionDisplay from 'containers/templates/AccordionDisplay';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { orderProcess, orderType, reverseTimelineValue, timeline, timelineValues } from 'utils/other/EnvironmentValues';
-import { dateFormatter } from 'utils/other/Services';
+import { orderProcess, reverseTimelineValue, timeline, timelineValues } from 'utils/other/EnvironmentValues';
+import { dateFormatter, moneyFormatter } from 'utils/other/Services';
 import { MENU_OPEN } from 'utils/redux/action';
 import PageRoot from './styled';
 
@@ -33,7 +33,7 @@ export default function RevenuePage() {
               element.dateCreated.toDate() >= new Date(currentDate.getFullYear() - 9 + index, 0) &&
               element.dateCreated.toDate() < new Date(currentDate.getFullYear() - 9 + index + 1, 0)
           )
-          .reduce((a, b) => a + b.price, 0);
+          .reduce((a, b) => a + b.products.reduce((a, b) => a + b.price, 0) + (b.shippingPrice ?? 0), 0);
       } else if (timelineValue.length === 12) {
         count = data
           .filter(
@@ -41,7 +41,7 @@ export default function RevenuePage() {
               element.dateCreated.toDate() >= new Date(currentDate.getFullYear(), index) &&
               element.dateCreated.toDate() < new Date(currentDate.getFullYear(), index + 1)
           )
-          .reduce((a, b) => a + b.price, 0);
+          .reduce((a, b) => a + b.products.reduce((a, b) => a + b.price, 0) + (b.shippingPrice ?? 0), 0);
       } else if (timelineValue.length === 7) {
         count = data
           .filter(
@@ -51,7 +51,7 @@ export default function RevenuePage() {
               element.dateCreated.toDate() <
                 new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 6 + index + 1)
           )
-          .reduce((a, b) => a + b.price, 0);
+          .reduce((a, b) => a + b.products.reduce((a, b) => a + b.price, 0) + (b.shippingPrice ?? 0), 0);
       }
 
       return count;
@@ -62,33 +62,24 @@ export default function RevenuePage() {
     if (!(sidebarReducer.isOpen.findIndex((id) => id === 'revenue') > -1)) {
       dispatch({ type: MENU_OPEN, id: 'revenue' });
     }
-    const listenerOrders = onSnapshot(collection(db, 'orders'), (snapshot) =>
+    const listenerOrders = onSnapshot(collection(db, 'orders'), async (snapshot) =>
       setOrders(
-        snapshot.docs
-          .filter((document) => {
-            const processList = document.data().processTracking.map((tracking) => tracking.name);
-            return processList.includes(orderProcess.orderFinished) && processList.includes(orderProcess.paymentConfirmed);
-          })
-          .map((document) => ({
-            id: document.id,
-            customerId: document.data().customerId,
-            dateCreated: document.data().dateCreated,
-            price: (() => {
-              switch (document.data().type) {
-                case orderType.order:
-                  return document.data().orderInfo.reduce((a, b) => a + b.price, 0);
+        await Promise.all(
+          snapshot.docs
+            .filter((document) => {
+              const processList = document.data().processTracking.map((tracking) => tracking.name);
+              return processList.includes(orderProcess.orderFinished) && processList.includes(orderProcess.paymentConfirmed);
+            })
+            .map(async (document) => {
+              const customerSnapshot = await getDoc(doc(db, 'customers', document.data().customerId));
 
-                case orderType.preOrder:
-                  return document.data().orderInfo.reduce((a, b) => a + b.price, 0);
-
-                case orderType.customization:
-                  return document.data().orderInfo.price;
-
-                default:
-                  return 0;
-              }
-            })()
-          }))
+              return {
+                id: document.id,
+                customerUsername: customerSnapshot.exists() ? customerSnapshot.data().username : '',
+                ...document.data()
+              };
+            })
+        )
       )
     );
 
@@ -125,7 +116,7 @@ export default function RevenuePage() {
             time: dateFormatter(row.dateCreated, 'HH:mm'),
             id: row.id,
             customerId: row.customerId,
-            price: row.price
+            price: moneyFormatter(row.products.reduce((a, b) => a + b.price, 0) + (row.shippingPrice ?? 0))
           }));
           return (
             <TableContainer className="table-container">

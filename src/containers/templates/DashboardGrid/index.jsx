@@ -216,7 +216,7 @@ export default function DashboardGrid({ sectionName, itemValues }) {
           </Box>
           <Box gridArea="C">
             <Typography variant="p" component="p" sx={{ textAlign: 'start' }}>
-              Perhitungan 30 hari terakhir
+              30 hari terakhir
             </Typography>
           </Box>
           <Box gridArea="D">
@@ -251,7 +251,7 @@ export default function DashboardGrid({ sectionName, itemValues }) {
           </Box>
           <Box gridArea="C">
             <Typography variant="p" component="p" sx={{ textAlign: 'start' }}>
-              Perhitungan 30 hari terakhir
+              30 hari terakhir
             </Typography>
           </Box>
           <Box gridArea="D">

@@ -31,8 +31,7 @@ export default function PopularProductPage() {
       setProducts(
         snapshot.docs.map((document) => ({
           id: document.id,
-          photo: document.data().images[0],
-          name: document.data().name,
+          ...document.data(),
           sold: document.data().sold ?? 1
         }))
       )
@@ -97,7 +96,7 @@ export default function PopularProductPage() {
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       backgroundRepeat: 'no-repeat',
-                      backgroundImage: `url(${product.photo ? product.photo : defaultProductImage})`
+                      backgroundImage: `url(${product.images?.[0] ?? defaultProductImage})`
                     }}
                   />
                 </TableCell>

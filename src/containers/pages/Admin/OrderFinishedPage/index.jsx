@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { MENU_OPEN } from 'utils/redux/action';
 import PageRoot from './styled';
-import { orderProcess, orderType, reverseTimelineValue, timeline, timelineValues } from 'utils/other/EnvironmentValues';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { orderProcess, reverseTimelineValue, timeline, timelineValues } from 'utils/other/EnvironmentValues';
+import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from 'config/firebase';
 import { dateConverter, dateFormatter } from 'utils/other/Services';
 import ChartSingle from 'components/elements/ChartSingle';
 
-const tableHeadContent = ['Tanggal', 'Waktu', 'No. Pesanan', 'Pelanggan', 'Jumlah Produk'];
+const tableHeadContent = ['Tanggal', 'Waktu', 'No. Pesanan', 'Username Pelanggan', 'Jumlah Produk'];
 
 export default function OrderFinishedPage() {
   const dispatch = useDispatch();
@@ -30,7 +30,7 @@ export default function OrderFinishedPage() {
         count = data.filter(
           (element) =>
             dateConverter(element.dateCreated) >= new Date(currentDate.getFullYear() - 9 + index, 0) &&
-            dateConverter(element.dateCreatedelement.dateCreated) < new Date(currentDate.getFullYear() - 9 + index + 1, 0)
+            dateConverter(element.dateCreated) < new Date(currentDate.getFullYear() - 9 + index + 1, 0)
         ).length;
       } else if (timelineValue.length === 12) {
         count = data.filter(
@@ -57,40 +57,28 @@ export default function OrderFinishedPage() {
       dispatch({ type: MENU_OPEN, id: 'order-finished' });
     }
 
-    const listenerOrders = onSnapshot(collection(db, 'orders'), (snapshot) =>
+    const listenerOrders = onSnapshot(collection(db, 'orders'), async (snapshot) =>
       setOrders(
-        snapshot.docs
-          .filter((document) =>
-            document
-              .data()
-              .processTracking.map((process) => process.name)
-              .includes(orderProcess.orderFinished)
-          )
-          .map((document) => ({
-            id: document.id,
-            customerId: document.data().customerId,
-            dateCreated: document.data().dateCreated,
-            type: document.data().type,
-            processTracking: document.data().processTracking,
-            amount: (() => {
-              switch (document.data().type) {
-                case orderType.order:
-                  return document.data().orderInfo.reduce((a, b) => a + b.count, 0);
+        await Promise.all(
+          snapshot.docs
+            .filter((document) =>
+              document
+                .data()
+                .processTracking.map((process) => process.name)
+                .includes(orderProcess.orderFinished)
+            )
+            .map(async (document) => {
+              const customerSnapshot = await getDoc(doc(db, 'customers', document.data().customerId));
 
-                case orderType.preOrder:
-                  return document
-                    .data()
-                    .orderInfo.map((e) => e.sizes.reduce((a, b) => a + b.count, 0))
-                    .reduce((a, b) => a + b, 0);
-
-                case orderType.customization:
-                  return document.data().orderInfo.sizes.reduce((a, b) => a + b.count, 0);
-
-                default:
-                  return 0;
-              }
-            })()
-          }))
+              return {
+                id: document.id,
+                customerUsername: customerSnapshot.exists() ? customerSnapshot.data().username : '',
+                dateCreated: document.data().dateCreated,
+                processTracking: document.data().processTracking,
+                amount: document.data().products.reduce((a, b) => a + b.count, 0)
+              };
+            })
+        )
       )
     );
 
@@ -126,7 +114,7 @@ export default function OrderFinishedPage() {
             date: dateFormatter(row.dateCreated, 'd MMMM yyyy'),
             time: dateFormatter(row.dateCreated, 'HH:mm'),
             id: row.id,
-            customerId: row.customerId,
+            customerUsername: row.customerUsername,
             amount: row.amount
           }));
           return (

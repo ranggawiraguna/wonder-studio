@@ -19,7 +19,7 @@ import { useTheme } from '@emotion/react';
 import { forwardRef, Fragment, useEffect, useState } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
 import PropTypes from 'prop-types';
-import { orderProcess, orderProcessDetail, orderType } from 'utils/other/EnvironmentValues';
+import { orderProcess, orderProcessDetail } from 'utils/other/EnvironmentValues';
 import { moneyFormatter } from 'utils/other/Services';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from 'config/firebase';
@@ -264,7 +264,6 @@ DialogUpdateOrderProcess.defaultProps = {
   data: {
     id: '',
     customerId: '',
-    type: orderType.order,
     customerName: '',
     totalPrice: 0,
     processTracking: [],

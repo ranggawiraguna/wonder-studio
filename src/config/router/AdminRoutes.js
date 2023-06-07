@@ -17,7 +17,7 @@ import PopularProductPage from 'containers/pages/Admin/PopularProduct';
 const AdminRoutes = [
   <Route key="/admin" exact path="/admin" replace element={<Navigate to="dashboard" />} />,
   <Route key="/admin/dashboard" path="dashboard" element={<DashboardPage />} />,
-  <Route key="/admin/admin-account" path="admin-account" element={<AuthenticationPage />} />,
+  <Route key="/admin/account" path="account" element={<AuthenticationPage />} />,
   <Route key="/admin/transaction" path="transaction" element={<TransactionPage />} />,
   <Route key="/admin/order-finished" path="order-finished" element={<OrderFinishedPage />} />,
   <Route key="/admin/revenue" path="revenue" element={<RevenuePage />} />,
