@@ -15,7 +15,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from 'config/firebase';
 import { useSelector } from 'react-redux';
 
-export default function ProductCard({ favorites = [], product = {}, ...props }) {
+export default function ProductCard({ favorites = [], product = {}, disableFavorite = false, ...props }) {
   const accountReducer = useSelector((state) => state.accountReducer);
 
   const [isFavorite, setIsFavorite] = useState(favorites.includes(product.id));
@@ -35,7 +35,9 @@ export default function ProductCard({ favorites = [], product = {}, ...props }) 
             ? moneyFormatter(product.price)
             : product.prices != null
             ? product.prices.length > 1
-              ? `${moneyFormatter(Math.min(...product.prices.map((_)=>_.value)))}  s/d  ${moneyFormatter(Math.max(...product.prices.map((_)=>_.value)))}`
+              ? `${moneyFormatter(Math.min(...product.prices.map((_) => _.value)))}  s/d  ${moneyFormatter(
+                  Math.max(...product.prices.map((_) => _.value))
+                )}`
               : product.prices.length > 0
               ? moneyFormatter(product.prices[0].value)
               : 'Rp. -'
@@ -43,20 +45,24 @@ export default function ProductCard({ favorites = [], product = {}, ...props }) 
         </Typography>
       </CardContent>
       <CardActions disableSpacing sx={{ display: 'flex', gap: 2 }}>
-        <IconButton
-          onClick={(_) => {
-            updateDoc(doc(db, 'customers', accountReducer.id), {
-              favorites: isFavorite ? favorites.filter((_) => _ !== product.id) : [...favorites, product.id]
-            });
-            setIsFavorite(!isFavorite);
-          }}
-          sx={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
-        >
-          <FavoriteIcon style={{ fill: isFavorite ? 'red' : 'grey', transform: 'translateY(1px)' }} />
-        </IconButton>
+        {disableFavorite ? (
+          <></>
+        ) : (
+          <IconButton
+            onClick={(_) => {
+              updateDoc(doc(db, 'customers', accountReducer.id), {
+                favorites: isFavorite ? favorites.filter((_) => _ !== product.id) : [...favorites, product.id]
+              });
+              setIsFavorite(!isFavorite);
+            }}
+            sx={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
+          >
+            <FavoriteIcon style={{ fill: isFavorite ? 'red' : 'grey', transform: 'translateY(1px)' }} />
+          </IconButton>
+        )}
         <Button
           onClick={() => {
-            navigate(`/customer/product/${product.id}`);
+            navigate(`/${disableFavorite ? 'guest' : 'customer'}/product/${product.id}`);
           }}
           variant="contained"
           sx={{ flex: 1 }}

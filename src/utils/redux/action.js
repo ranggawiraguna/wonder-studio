@@ -3,7 +3,6 @@ import sidebarAction from './actions/sidebar';
 import searchAction from './actions/search';
 
 // account action
-export const CREATE_SESSION = accountAction.CREATE_SESSION;
 export const RESTORE_SESSION = accountAction.RESTORE_SESSION;
 export const CLEAR_SESSION = accountAction.CLEAR_SESSION;
 

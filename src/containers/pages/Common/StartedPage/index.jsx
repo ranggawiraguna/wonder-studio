@@ -16,7 +16,6 @@ import IconServiceSix from 'assets/images/icon/ServiceSix.png';
 import IconPhone from 'assets/images/icon/IconPhone.png';
 import IconWhatsApp from 'assets/images/icon/IconWhatsApp.png';
 import IconGmail from 'assets/images/icon/IconGmail.png';
-import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { useTheme } from '@emotion/react';
 import ReactSwipe from 'react-swipe';
@@ -79,8 +78,6 @@ export default function StartedPage() {
   const isScreenMd = useMediaQuery(useTheme().breakpoints.up('md'));
 
   const navigate = useNavigate();
-
-  const accountReducer = useSelector((state) => state.accountReducer);
 
   const [products, setProducts] = useState([]);
 
@@ -249,7 +246,7 @@ export default function StartedPage() {
                   borderRadius: 1000
                 }}
               >
-                <ArrowForwardIosRoundedIcon sx={{ fill: 'lightgrey', '&:hover': { fill: 'black' }  }} />
+                <ArrowForwardIosRoundedIcon sx={{ fill: 'lightgrey', '&:hover': { fill: 'black' } }} />
               </Button>
             </Box>
           )}
@@ -260,21 +257,7 @@ export default function StartedPage() {
           >
             Untuk melihat harga dan lainnya silahkan klik tombol dibawah ini.
           </Typography>
-          <Button
-            variant="contained"
-            onClick={() => {
-              switch (accountReducer.role) {
-                case 'admin':
-                  return navigate('/admin/product');
-
-                case 'customer':
-                  return navigate('/customer/product');
-
-                default:
-                  return navigate('/masuk');
-              }
-            }}
-          >
+          <Button variant="contained" onClick={() => navigate('/guest/product')}>
             Lihat Selengkapnya
           </Button>
         </BoxTransition>

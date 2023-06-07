@@ -7,14 +7,16 @@ import StartedRoutes from './StartedRoutes';
 import MainLayout from 'containers/templates/MainLayout';
 import ValidateSession from 'utils/other/ValidateSession';
 import ManagerAccount from 'utils/other/ManagerAccount';
+import GuestRoutes from './GuestRoutes';
 
 const MainRoutes = [
   <Route key="Manager Account" element={<ManagerAccount />}>
     <Route key="Started Routes" path="/" element={<StartedContainer />} children={StartedRoutes} />,
     <Route key="Content Routes" element={<ManagerAccount />}>
       <Route key="Main Layout" element={<MainLayout />}>
-        <Route key="Customer" path="customer" element={<ValidateSession role="customer" />} children={CustomerRoutes} />
         <Route key="Admin" path="admin" element={<ValidateSession role="admin" />} children={AdminRoutes} />
+        <Route key="Customer" path="customer" element={<ValidateSession role="customer" />} children={CustomerRoutes} />
+        <Route key="Guest" path="guest" children={GuestRoutes} />
       </Route>
     </Route>
   </Route>,

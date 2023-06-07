@@ -241,7 +241,6 @@ export default function ProductDetailPage() {
               Description
             </Typography>
             <Typography variant="h5">
-              {' '}
               {(product.description ?? '').toString().length > 0 ? product.description : 'Tidak Ada Deskripsi'}
             </Typography>
             <Spacer />

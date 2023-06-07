@@ -265,9 +265,9 @@ const accountReducer = (state = initialState, action) => {
     case actionTypes.RESTORE_SESSION:
       return {
         ...action.data,
-        id: action.data.id,
+        ...(action.data?.id ? { id: action.data.id } : {}),
+        ...(action.data?.id ? { isLogin: true } : {}),
         role: action.role,
-        isLogin: true
       };
 
     default:

@@ -7,7 +7,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { CLEAR_SESSION, MENU_OPEN } from 'utils/redux/action';
 import { useTheme } from '@mui/material/styles';
-import { IconLogout, IconSettings, IconUser } from '@tabler/icons';
+import { IconLogout, IconSettings, IconUser, IconLogin } from '@tabler/icons';
 import { signOut } from 'firebase/auth';
 import { auth } from 'config/firebase';
 import {
@@ -173,15 +173,24 @@ export default function ProfileSection() {
                   <Box sx={{ p: 2 }}>
                     <Stack>
                       <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Typography variant="h4">{accountReducer.fullname != null ? accountReducer.fullname : 'User'}</Typography>
+                        <Typography variant="h4">
+                          {location.pathname.includes('guest')
+                            ? 'Wonder Studio Account'
+                            : accountReducer.fullname != null
+                            ? accountReducer.fullname
+                            : 'User'}
+                        </Typography>
                       </Stack>
                       <Typography variant="subtitle2">
-                        {accountReducer.role != null
+                        {location.pathname.includes('guest')
+                          ? 'Guest'
+                          : accountReducer.role != null
                           ? accountReducer.role[0]?.toUpperCase() + accountReducer.role?.substring(1, accountReducer.role.length)
                           : ''}
                       </Typography>
                     </Stack>
                   </Box>
+
                   <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>
                     <Box sx={{ p: 2 }}>
                       <List
@@ -196,30 +205,45 @@ export default function ProfileSection() {
                             minWidth: '100%'
                           },
                           '& .MuiListItemButton-root': {
-                            mt: 0.5
+                            mt: location.pathname.includes('guest') ? -3 : 0.5
                           }
                         }}
                       >
-                        <ListItemButton
-                          sx={{ borderRadius: `${sidebarReducer.borderRadius}px` }}
-                          selected={location.pathname.includes('profile') && !isLogoutProcess}
-                          onClick={(event) => handleListItemClick(event, `/${accountReducer.role}/profile`)}
-                        >
-                          <ListItemIcon>
-                            <IconUser stroke={1.5} size="1.3rem" />
-                          </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Profile</Typography>} />
-                        </ListItemButton>
-                        <ListItemButton
-                          sx={{ borderRadius: `${sidebarReducer.borderRadius}px` }}
-                          selected={isLogoutProcess}
-                          onClick={handleLogout}
-                        >
-                          <ListItemIcon>
-                            <IconLogout stroke={1.5} size="1.3rem" />
-                          </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Logout</Typography>} />
-                        </ListItemButton>
+                        {location.pathname.includes('guest') ? (
+                          <ListItemButton
+                            sx={{ borderRadius: `${sidebarReducer.borderRadius}px` }}
+                            selected={false}
+                            onClick={() => navigate('/masuk')}
+                          >
+                            <ListItemIcon>
+                              <IconLogin stroke={1.5} size="1.3rem" />
+                            </ListItemIcon>
+                            <ListItemText primary={<Typography variant="body2">Login</Typography>} />
+                          </ListItemButton>
+                        ) : (
+                          <>
+                            <ListItemButton
+                              sx={{ borderRadius: `${sidebarReducer.borderRadius}px` }}
+                              selected={location.pathname.includes('profile') && !isLogoutProcess}
+                              onClick={(event) => handleListItemClick(event, `/${accountReducer.role}/profile`)}
+                            >
+                              <ListItemIcon>
+                                <IconUser stroke={1.5} size="1.3rem" />
+                              </ListItemIcon>
+                              <ListItemText primary={<Typography variant="body2">Profile</Typography>} />
+                            </ListItemButton>
+                            <ListItemButton
+                              sx={{ borderRadius: `${sidebarReducer.borderRadius}px` }}
+                              selected={isLogoutProcess}
+                              onClick={handleLogout}
+                            >
+                              <ListItemIcon>
+                                <IconLogout stroke={1.5} size="1.3rem" />
+                              </ListItemIcon>
+                              <ListItemText primary={<Typography variant="body2">Logout</Typography>} />
+                            </ListItemButton>
+                          </>
+                        )}
                       </List>
                     </Box>
                   </PerfectScrollbar>
