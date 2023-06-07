@@ -58,8 +58,10 @@ export default function ProfileSection() {
           }, 3000);
         })
         .catch((error) => {
-          showAlertToast('error', error.message);
-          setIsLogoutProcess(false);
+          navigate('/masuk');
+          dispatch({
+            type: CLEAR_SESSION
+          });
         });
     }
   };

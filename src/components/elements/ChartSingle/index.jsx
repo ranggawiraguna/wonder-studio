@@ -26,6 +26,11 @@ export default function ChartSingle({ id, type, label, data, stroke, largeSize, 
                   chart: {
                     id: id
                   },
+                  yaxis: {
+                    labels: {
+                      formatter: (val) => parseInt(val)
+                    }
+                  },
                   xaxis: { categories: label },
                   markers: {
                     size: 6,

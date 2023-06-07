@@ -27,7 +27,7 @@ export default function ProductDetailPage() {
     minimalOrder: '',
     models: [],
     sizes: [],
-    rating: 5
+    rating: []
   });
 
   const [imageSelected, setImageSelected] = useState(0);
@@ -183,21 +183,21 @@ export default function ProductDetailPage() {
                 <Typography variant="h4">Penilaian Produk</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <Box display={{ flex: 1 }}>
-                    <Rating name="read-only" value={product.rating ?? 0} precision={0.1} readOnly />
+                    <Rating name="read-only" value={product.rating.reduce((a, b) => a + b.rateValue, 0) ?? 0} precision={0.1} readOnly />
                     <Typography
                       variant="h5"
-                      sx={{ marginLeft: product.rating != null ? { sm: 0.5 } : {}, marginTop: product.rating == null ? 1 : 0 }}
+                      sx={{ marginLeft: product.rating.length > 0 ? { sm: 0.5 } : {}, marginTop: product.rating.length > 0 ? 1 : 0 }}
                     >
-                      Keterangan :{' '}
+                      Keterangan :
                       {(() => {
-                        if (product.rating != null) {
-                          if (product.rating <= 1) {
+                        if (product.rating.length > 0) {
+                          if ((product.rating.reduce((a, b) => a + b.rateValue, 0) ?? 0) <= 1) {
                             return 'Sangat Kurang';
-                          } else if (product.rating <= 2) {
+                          } else if ((product.rating.reduce((a, b) => a + b.rateValue, 0) ?? 0) <= 2) {
                             return 'Kurang';
-                          } else if (product.rating <= 3) {
+                          } else if ((product.rating.reduce((a, b) => a + b.rateValue, 0) ?? 0) <= 3) {
                             return 'Cukup';
-                          } else if (product.rating <= 4) {
+                          } else if ((product.rating.reduce((a, b) => a + b.rateValue, 0) ?? 0) <= 4) {
                             return 'Baik';
                           } else {
                             return 'Sangat Baik';
@@ -209,7 +209,7 @@ export default function ProductDetailPage() {
                     </Typography>
                   </Box>
                   <Typography variant="h1" sx={{ padding: 1, fontSize: 42 }}>
-                    {product.rating ?? 0}
+                    {product.rating.reduce((a, b) => a + b.rateValue, 0) ?? 0}
                   </Typography>
                 </Box>
               </Box>

@@ -3,7 +3,7 @@ import { Box } from '@mui/system';
 import ChartSingle from 'components/elements/ChartSingle';
 import { db } from 'config/firebase';
 import TableDisplay from 'containers/templates/TableDisplay';
-import { collection, limit, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { Fragment, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
@@ -27,12 +27,12 @@ export default function PopularProductPage() {
       dispatch({ type: MENU_OPEN, id: 'popular-product' });
     }
 
-    const listenerProducts = onSnapshot(query(collection(db, 'products'), limit(5)), (snapshot) =>
+    const listenerProducts = onSnapshot(collection(db, 'products'), (snapshot) =>
       setProducts(
         snapshot.docs.map((document) => ({
           id: document.id,
           ...document.data(),
-          sold: document.data().sold ?? 1
+          sold: document.data().sold ?? 0
         }))
       )
     );
@@ -42,6 +42,8 @@ export default function PopularProductPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  products.sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0));
 
   return (
     <PageRoot>
@@ -53,8 +55,8 @@ export default function PopularProductPage() {
             <ChartSingle
               id={`ChartProdukTerlaris`}
               type="pie"
-              label={products.slice(0, 5).map((e) => e.name)}
-              data={products.slice(0, 5).map((e) => e.sold)}
+              label={products.filter((_)=>(_.sold ?? 0) > 0).slice(0, 5).map((e) => e.name)}
+              data={products.filter((_)=>(_.sold ?? 0) > 0).slice(0, 5).map((e) => e.sold)}
               colors={['#B11900', '#FFE779', '#6DAFA7', '#7BA7FF', '#B05AF3']}
             />,
             <Box>
@@ -117,7 +119,7 @@ export default function PopularProductPage() {
                   <Button
                     variant="contained"
                     onClick={() => {
-                      navigate(`/store/product/view/${product.id}`);
+                      navigate(`/admin/product/view/${product.id}`);
                     }}
                   >
                     Lihat Detail

@@ -1,12 +1,5 @@
 import { useTheme } from '@emotion/react';
-import {
-  Backdrop,
-  Box,
-  Button,
-  Rating,
-  Typography,
-  useMediaQuery
-} from '@mui/material';
+import { Backdrop, Box, Button, Rating, Typography, useMediaQuery } from '@mui/material';
 import AlertToast from 'components/elements/AlertToast';
 import EmptyContent from 'components/elements/EmptyContent';
 import FieldGroupView from 'components/elements/FieldGroupView';
@@ -54,10 +47,10 @@ export default function ProductViewPage() {
     name: '',
     price: 0,
     images: ['', '', ''],
-    rating: 5,
+    rating: [],
     sizes: [],
-    models:[],
-    sold: 0,
+    models: [],
+    sold: 0
   });
 
   const [imageBackdrop, setImageBackdrop] = useState('');
@@ -154,8 +147,8 @@ export default function ProductViewPage() {
               <Box>
                 <Rating
                   name="read-only"
-                  value={product.rating}
-                  precision={product.rating - Math.floor(product.rating) ? 0.1 : 1}
+                  value={product.rating.reduce((a, b) => a + b.rateValue, 0) ?? 0}
+                  precision={0.1}
                   size={'small'}
                   readOnly
                 />
@@ -168,7 +161,15 @@ export default function ProductViewPage() {
             <FieldGroupView withFrame title="Deskripsi" data={product.description} sx={{ marginBottom: '30px' }} />
             <FieldGroupView withFrame title="Satuan Jumlah" data={product.uom} sx={{ marginBottom: '30px' }} />
             <FieldGroupView withFrame title="Minimal Order" data={product.minimalOrder} sx={{ marginBottom: '30px' }} />
-            <FieldGroupView withFrame title="Harga" data={product.price} sx={{ marginBottom: '30px', display: (product.models ?? []).length === 0 && (product.models ?? []).length === 0 ? 'block' : 'none' }} />
+            <FieldGroupView
+              withFrame
+              title="Harga"
+              data={product.price}
+              sx={{
+                marginBottom: '30px',
+                display: (product.models ?? []).length === 0 && (product.models ?? []).length === 0 ? 'block' : 'none'
+              }}
+            />
             <FieldGroupView withFrame type="color" title="Warna" data={product.colors} sx={{ marginBottom: '30px' }} />
             <Box>
               {(product.models ?? []).length > 0 ? (

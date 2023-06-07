@@ -44,7 +44,6 @@ export default function ProductEditPage() {
     price: 0,
     prices: [],
     minimalOrder: 0,
-    rating: 0,
     sizes: []
   });
   const [productTemp, setProductTemp] = useState(product);

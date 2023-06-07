@@ -80,7 +80,8 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, .
           if (currentProcess === orderProcess.orderFinished) {
             newData = {
               ...newData,
-              dateFinished: new Date()
+              dateFinished: new Date(),
+              sold: (data.sold ?? 0) + 1
             };
           }
 

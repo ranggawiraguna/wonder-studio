@@ -38,7 +38,6 @@ export default function ProductAddPage() {
     price: 0,
     prices: [],
     minimalOrder: 0,
-    rating: 0,
     sizes: []
   });
 
@@ -115,7 +114,6 @@ export default function ProductAddPage() {
                 price: 0,
                 prices: [],
                 minimalOrder: 0,
-                rating: 0,
                 sizes: []
               });
               setIsAddProcess(false);

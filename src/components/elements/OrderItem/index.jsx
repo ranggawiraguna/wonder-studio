@@ -13,7 +13,6 @@ export default function OrderItem({ data, ...props }) {
     name: '',
     price: 0,
     images: ['', '', ''],
-    rating: 5,
     sizes: [],
     models: [],
     sold: 0
