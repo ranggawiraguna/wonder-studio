@@ -62,7 +62,7 @@ export default function ProductCard({ favorites = [], product = {}, disableFavor
         )}
         <Button
           onClick={() => {
-            navigate(`/${disableFavorite ? 'guest' : 'customer'}/product/${product.id}`);
+            navigate(disableFavorite ? `/product/${product.id}` : `/customer/product/${product.id}`);
           }}
           variant="contained"
           sx={{ flex: 1 }}

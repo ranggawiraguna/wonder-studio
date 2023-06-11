@@ -1,6 +1,5 @@
 import { Box, styled } from '@mui/material';
 import backgroundStartedFirst from 'assets/images/background/PageStaredFirst.svg';
-import backgroundStartedLast from 'assets/images/background/PageStaredLast.svg';
 
 export default styled(Box)(({ theme }) => ({
   backgroundColor: 'white',
@@ -17,15 +16,15 @@ export default styled(Box)(({ theme }) => ({
   },
 
   '& .content': {
-    width: ' 100%',
-    backgroundColor: 'white'
+    width: ' 100%',   
   },
   '& .section-one': {
+    backgroundColor: 'white',
     backgroundImage: `url(${backgroundStartedFirst})`,
-    backgroundRepeat: 'no-repeat',
     backgroundSize: 'cover',
     backgroundPositionY: 'bottom',
     backgroundPositionX: 'center',
+    backgroundRepeat: 'no-repeat',
     '& > .box-content': {
       '& > div:nth-of-type(1)': {
         '& > p': {
@@ -80,11 +79,6 @@ export default styled(Box)(({ theme }) => ({
     }
   },
   '& .section-three': {
-    backgroundImage: `url(${backgroundStartedLast})`,
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover',
-    backgroundPositionY: 'top',
-    backgroundPositionX: 'center',
     fontFamily: 'Folks',
     '& > div': {
       display: 'flex',
@@ -100,7 +94,6 @@ export default styled(Box)(({ theme }) => ({
 
   
   '& .content.section-four': {
-    backgroundColor: '#D7E9FF',
     height: 'auto',
     textAlign: 'center',
     '& > div': {
@@ -295,7 +288,7 @@ export default styled(Box)(({ theme }) => ({
       }
     },
     '& .section-three': {
-      padding: '8vw 1vw 3vw'
+      padding: '2vw 1vw 3vw'
     },
     '& .content.section-four': {
       padding: '3vw 5vw',

@@ -79,7 +79,7 @@ export default function ProductDetailPage() {
 
   return (
     <Fragment>
-      <Grid container spacing={{ xs: 0, sm: 2 }} sx={{ paddingTop: { xs: '20px', sm: 0 } }}>
+      <Grid container spacing={{ xs: 0, sm: 2 }} sx={{ padding:3 }}>
         <Grid item xs={12} sm={5}>
           <Box sx={{ minHeight: { md: 'calc(100vh - 130px)' }, marginBottom: { xs: 3, md: 0 } }}>
             <Box sx={{ width: '100%', position: 'relative' }}>
@@ -181,7 +181,7 @@ export default function ProductDetailPage() {
                         Math.max(...product.prices.map((_) => _.value))
                       )}`
                     : product.prices.length > 0
-                    ? moneyFormatter(product.prices[0])
+                    ? moneyFormatter(product.prices[0].value)
                     : 'Rp. -'
                   : 'Rp. -'
                 : moneyFormatter(currentPrice)}

@@ -6,11 +6,9 @@ import { IconSearch, IconX } from '@tabler/icons';
 import { PopperStyle, OutlineInputStyle, HeaderAvatarStyle } from './styled';
 import { useDispatch, useSelector } from 'react-redux';
 import { SET_VALUE } from 'utils/redux/action';
-import { useLocation } from 'react-router';
 
 export default function SearchSection() {
   const theme = useTheme();
-  const location = useLocation();
   const dispatch = useDispatch();
   const searchReducer = useSelector((state) => state.searchReducer);
 
@@ -44,7 +42,7 @@ export default function SearchSection() {
                           <Grid container alignItems="center" justifyContent="space-between">
                             <Grid item xs>
                               <OutlineInputStyle
-                                disabled={!searchReducer.isActive || location.pathname.includes('guest')}
+                                disabled={!searchReducer.isActive}
                                 id="input-search-header"
                                 value={searchReducer.value}
                                 onChange={(e) => dispatch({ type: SET_VALUE, value: e.target.value })}
@@ -99,7 +97,7 @@ export default function SearchSection() {
       </Box>
       <Box sx={{ display: { xs: 'none', md: 'block' } }}>
         <OutlineInputStyle
-          disabled={!searchReducer.isActive || location.pathname.includes('guest')}
+          disabled={!searchReducer.isActive}
           id="input-search-header"
           value={searchReducer.value}
           sx={{

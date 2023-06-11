@@ -2,7 +2,6 @@ import { Typography } from '@mui/material';
 import NavGroup from './NavGroup';
 import adminSidebar from 'config/menu/AdminSidebar';
 import customerSidebar from 'config/menu/CustomerSidebar';
-import guestSidebar from 'config/menu/GuestSidebar';
 import { useLocation } from 'react-router';
 
 export default function MenuList() {
@@ -12,8 +11,6 @@ export default function MenuList() {
       return adminSidebar;
     } else if (location.pathname.includes('customer')) {
       return customerSidebar;
-    } else {
-      return guestSidebar;
     }
   })();
 

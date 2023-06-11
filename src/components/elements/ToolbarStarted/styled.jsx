@@ -3,14 +3,17 @@ import { styled, Toolbar } from '@mui/material';
 export default styled(Toolbar)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
+  position: 'relative',
+  zIndex: 1000,
+  gap: 50,
   justifyContent: 'space-between',
 
-  '& > div' :{
+  '& > div': {
     display: 'flex',
-    gap: 20,      
+    gap: 20
   },
   '& a': {
-    textDecoration: 'none',
+    textDecoration: 'none'
   },
   '& button': {
     fontWeight: 'bold',
@@ -19,8 +22,7 @@ export default styled(Toolbar)(({ theme }) => ({
     padding: 0,
     minHeight: 0,
     minWidth: 0,
-    fontFamily: 'Folks',
-    transform: 'translateY(-7px)'
+    fontFamily: 'Folks'
   },
   '& img': {
     minWidth: 'auto',
@@ -46,7 +48,6 @@ export default styled(Toolbar)(({ theme }) => ({
     padding: '3vw 3vw 0',
     '& button': {
       borderRadius: '1vw',
-      fontSize: '1.8vw',
       padding: '0.5vw 2vw'
     },
     '& img': {
@@ -58,7 +59,6 @@ export default styled(Toolbar)(({ theme }) => ({
     padding: '1vw 1.5vw 1vw 3vw',
     '& button': {
       borderRadius: '0.4vw',
-      fontSize: '0.9vw',
       padding: '0.3vw 1.2vw'
     },
     '& img': {

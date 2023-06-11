@@ -231,7 +231,7 @@ export default function ProductDetailPage() {
                         Math.max(...product.prices.map((_) => _.value))
                       )}`
                     : product.prices.length > 0
-                    ? moneyFormatter(product.prices[0])
+                    ? moneyFormatter(product.prices[0].value)
                     : 'Rp. -'
                   : 'Rp. -'
                 : moneyFormatter(currentPrice)}
