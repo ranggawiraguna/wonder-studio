@@ -88,34 +88,7 @@ export default styled(Box)(({ theme }) => ({
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      '& > div:nth-of-type(5)': {
-        '& > div': {
-          '& > div:not(:last-of-type)': {
-            '& > div': {
-              width: '25px',
-            },
-          },
-        }
-      },
       '& > .value-list':{
-        '& > div:nth-of-type(1)': {
-          '& > div': {
-            '& > div:not(:last-of-type)': {
-              '& > div': {
-                width: '25px'
-              },
-            },
-          }
-        },
-        '& > div:nth-of-type(2), & > div:nth-of-type(3)': {
-          '& > div': {
-            '& > div:not(:last-of-type)': {
-              '& > div': {
-                padding: '0 15px'
-              },
-            },
-          }
-        },
         '& > div:nth-of-type(1), & > div:nth-of-type(2), & > div:nth-of-type(3)': {
           '& > h4': {
             color: '#666666',
@@ -139,7 +112,7 @@ export default styled(Box)(({ theme }) => ({
                 padding: '4px',
                 '& > div': {
                   borderRadius: 1000,
-                  height: '25px',
+                  padding: '0 15px'
                 },
                 '& > button': {
                   padding: 0,

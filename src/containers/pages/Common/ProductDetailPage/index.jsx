@@ -10,6 +10,7 @@ import { useParams } from 'react-router';
 import { defaultProductImage } from 'utils/other/EnvironmentValues';
 import DialogAddOrder from 'components/views/DialogActionOrder/AddOrder';
 import AlertToast from 'components/elements/AlertToast';
+import ProductDiscussion from 'containers/templates/ProductDiscussion';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -79,7 +80,7 @@ export default function ProductDetailPage() {
 
   return (
     <Fragment>
-      <Grid container spacing={{ xs: 0, sm: 2 }} sx={{ padding:3 }}>
+      <Grid container spacing={{ xs: 0, sm: 2 }} sx={{ padding: 3 }}>
         <Grid item xs={12} sm={5}>
           <Box sx={{ minHeight: { md: 'calc(100vh - 130px)' }, marginBottom: { xs: 3, md: 0 } }}>
             <Box sx={{ width: '100%', position: 'relative' }}>
@@ -206,7 +207,7 @@ export default function ProductDetailPage() {
             <Typography variant="h5" sx={{ marginBottom: 1 }}>
               {stringCapitalize((product.minimalOrder ?? '-') + (product.minimalOrder ? ` ${product.uom}` : ''))}
             </Typography>
-            <Box sx={{  marginTop: 3.5 }}>
+            <Box sx={{ marginTop: 3.5 }}>
               <Box
                 sx={{
                   width: '100%',
@@ -251,6 +252,11 @@ export default function ProductDetailPage() {
                 </Box>
               </Box>
             </Box>
+          </Box>
+        </Grid>
+        <Grid item xs={12}>
+          <Box sx={{ padding: { xs: 1, md: 4 }, paddingTop: { xs: 3, md: 2 }, paddingBottom: 0 }}>
+            <ProductDiscussion disableComment productId={product.id} showAlert={showAlertToast} />
           </Box>
         </Grid>
       </Grid>

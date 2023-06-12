@@ -14,6 +14,7 @@ import { defaultProductImage } from 'utils/other/EnvironmentValues';
 import { MENU_OPEN } from 'utils/redux/action';
 import PageRoot from './styled';
 import { moneyFormatter, stringCapitalize } from 'utils/other/Services';
+import ProductDiscussion from 'containers/templates/ProductDiscussion';
 
 export default function ProductViewPage() {
   const dispatch = useDispatch();
@@ -170,7 +171,6 @@ export default function ProductViewPage() {
                 display: (product.models ?? []).length === 0 && (product.models ?? []).length === 0 ? 'block' : 'none'
               }}
             />
-            <FieldGroupView withFrame type="color" title="Warna" data={product.colors} sx={{ marginBottom: '30px' }} />
             <Box>
               {(product.models ?? []).length > 0 ? (
                 <FieldGroupView withFrame type="model" title="Model" data={product.models} sx={{ marginBottom: '30px' }} />
@@ -249,6 +249,9 @@ export default function ProductViewPage() {
                         </Box>
                       </Box>
                     ))}
+                    <Box sx={{ padding: 1, paddingTop: { xs: 3, md: 2 }, paddingBottom: 0, marginTop: -1 }}>
+                      <ProductDiscussion productId={product.id} showAlert={showAlertToast} />
+                    </Box>
                   </Box>
                 );
               } else {

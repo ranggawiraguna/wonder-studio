@@ -15,10 +15,12 @@ import { defaultProductImage } from 'utils/other/EnvironmentValues';
 import { blue } from '@mui/material/colors';
 import DialogAddOrder from 'components/views/DialogActionOrder/AddOrder';
 import AlertToast from 'components/elements/AlertToast';
+import ProductDiscussion from 'containers/templates/ProductDiscussion';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const [product, setProduct] = useState({
+    id:'',
     name: '',
     price: 0,
     description: '',
@@ -373,7 +375,8 @@ export default function ProductDetailPage() {
                 flexDirection: { xs: 'column', sm: 'row' },
                 alignItems: 'stretch',
                 justifyContent: { sx: 'center', sm: 'flex-end' },
-                gap: { xs: 2, xm: 5 }
+                gap: { xs: 2, xm: 5 },
+                marginTop: 2
               }}
             >
               <Button
@@ -419,6 +422,11 @@ export default function ProductDetailPage() {
                 <EastIcon />
               </Button>
             </Box>
+          </Box>
+        </Grid>
+        <Grid item xs={12}>
+          <Box sx={{ padding: { xs: 1, md: 4 }, paddingTop: { xs: 3, md: 2 }, paddingBottom: 0 }}>
+            <ProductDiscussion productId={product.id} showAlert={showAlertToast} />
           </Box>
         </Grid>
       </Grid>
