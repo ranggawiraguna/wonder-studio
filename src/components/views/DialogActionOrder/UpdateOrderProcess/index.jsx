@@ -21,7 +21,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import PropTypes from 'prop-types';
 import { orderProcess, orderProcessDetail } from 'utils/other/EnvironmentValues';
 import { moneyFormatter } from 'utils/other/Services';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from 'config/firebase';
 
 const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, ...others }, ref) => {
@@ -30,6 +30,7 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, .
 
   const [isUpdateProcess, setIsUpdateProcess] = useState(false);
 
+  const [customer, setCustomer] = useState({});
   const [currentProcess, setCurrentProcess] = useState('');
 
   useEffect(() => {
@@ -40,12 +41,16 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, .
 
   const getProcessOptions = () => {
     if (data.processTracking.length > 0) {
-      return Object.keys(orderProcess).filter(
-        (process) =>
-          process !== orderProcess.waitingPayment &&
-          Object.keys(orderProcess).findIndex((name) => name === process) >
-            Object.keys(orderProcess).findIndex((name) => name === data.processTracking[data.processTracking.length - 1].name)
-      );
+      return Object.keys(orderProcess)
+        .filter(
+          (process) =>
+            process !== orderProcess.waitingPayment &&
+            Object.keys(orderProcess).findIndex((name) => name === process) >
+              Object.keys(orderProcess).findIndex((name) => name === data.processTracking[data.processTracking.length - 1].name)
+        )
+        .filter((_) =>
+          data.deliveryType === 'cod' ? ![orderProcess.orderProcess].includes(_) : ![orderProcess.orderReadyPickup].includes(_)
+        );
     } else {
       return [];
     }
@@ -112,6 +117,25 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, .
     }
   };
 
+  useEffect(() => {
+    if (data.customerId) {
+      const listenerCustomer = onSnapshot(doc(db, 'customers', data.customerId), (snapshot) => {
+        if (snapshot.exists()) {
+          setCustomer({
+            id: snapshot.id,
+            ...snapshot.data()
+          });
+        } else {
+          setCustomer(null);
+        }
+
+        return () => {
+          listenerCustomer();
+        };
+      });
+    }
+  }, [data]);
+
   return (
     <Fragment>
       <Dialog
@@ -166,7 +190,7 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, .
                 :
               </Typography>
               <Typography variant="h5" component="h5">
-                {data.customerUsername}
+                {customer.username}
               </Typography>
               <Typography variant="h5" component="h5">
                 Nama
@@ -175,7 +199,7 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, .
                 :
               </Typography>
               <Typography variant="h5" component="h5">
-                {data.customerName}
+                {data.name}
               </Typography>
               <Typography variant="h5" component="h5">
                 Total Biaya
@@ -184,7 +208,7 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, .
                 :
               </Typography>
               <Typography variant="h5" component="h5">
-                {data.totalPrice > 0 ? moneyFormatter(data.totalPrice) : '-'}
+                {data.products ? moneyFormatter(data.products.reduce((a, b) => a + b.price, 0) + (data.shippingPrice ?? 0)) : 'Rp. -'}
               </Typography>
             </Box>
             <Typography variant="h4" component="h4" sx={{ color: '#404040' }}>

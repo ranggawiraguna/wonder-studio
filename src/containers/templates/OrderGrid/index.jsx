@@ -7,8 +7,6 @@ import { dateFormatter, moneyFormatter } from 'utils/other/Services';
 import { Fragment, useState } from 'react';
 import DialogUpdateOrderProcess from 'components/views/DialogActionOrder/UpdateOrderProcess';
 import IllustrationEmptyContent from 'assets/images/illustration/EmptyContent.svg';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from 'config/firebase';
 import OrderItem from 'components/elements/OrderItem';
 import AlertToast from 'components/elements/AlertToast';
 
@@ -92,16 +90,10 @@ export default function OrderGrid({ data, isAdmin = true, isCompleteListener, is
                   <Button
                     variant="contained"
                     sx={isAdmin ? {} : { display: 'none' }}
-                    onClick={async () => {
-                      const customerSnapshot = await getDoc(doc(db, 'customers', element.customerId));
+                    onClick={() => {
                       setSelectedData({
                         id: element.id,
-                        customerId: element.customerId,
-                        customerUsername: customerSnapshot.exists() ? customerSnapshot.data().username : '',
-                        customerName: element.name,
-                        totalPrice: element.products.reduce((a, b) => a + b.price, 0),
-                        shippingPrice: element.shippingPrice,
-                        processTracking: element.processTracking
+                        ...element
                       });
                       setOpenDialogUpdateProcess(true);
                     }}

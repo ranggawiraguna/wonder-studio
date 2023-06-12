@@ -12,10 +12,13 @@ import {
   Box,
   FormControl,
   OutlinedInput,
-  InputLabel
+  InputLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio
 } from '@mui/material';
 import { useTheme } from '@emotion/react';
-import { forwardRef, Fragment, useState } from 'react';
+import { forwardRef, Fragment, useEffect, useState } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
 import PropTypes from 'prop-types';
 import { moneyFormatter, stringCapitalize } from 'utils/other/Services';
@@ -46,7 +49,7 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, currentPrice, sh
   const [orderForm, setOrderForm] = useState({
     name: '',
     phoneNumber: '',
-    address: ''
+    deliveryType: 'cod'
   });
 
   const handleOnChangeForm = (prop) => (event) => {
@@ -102,7 +105,14 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, currentPrice, sh
         ...(actionName === 'cart' ? { images: images } : {}),
         ...(actionName === 'cart' ? item : { products: [item] }),
         ...(actionName === 'cart' ? {} : orderForm),
-        ...(actionName === 'cart' ? {} : { processTracking: [{ name: orderProcess.orderCreate, date: new Date() }] })
+        ...(actionName === 'cart'
+          ? {}
+          : {
+              processTracking: [
+                { name: orderProcess.orderCreate, date: new Date() },
+                ...(orderForm.deliveryType === 'cod' ? [{ name: orderProcess.waitingPayment, date: new Date() }] : [{}])
+              ]
+            })
       })
         .catch(() => {
           showAlert('warning', `Terjadi kesalahan, gagal menambahkan produk ke ${actionName === 'order' ? 'pesanan' : 'keranjang'}`);
@@ -150,11 +160,22 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, currentPrice, sh
       setOrderForm({
         name: '',
         phoneNumber: '',
-        address: ''
+        deliveryType: 'cod'
       });
       setSectionIndex(0);
     }
   };
+
+  useEffect(() => {
+    if (orderForm.deliveryType === 'cod') {
+      delete orderForm.address;
+    } else {
+      setOrderForm({
+        ...orderForm,
+        address: ''
+      });
+    }
+  }, [orderForm.deliveryType]);
 
   return (
     <Fragment>
@@ -297,44 +318,58 @@ const DialogAddOrder = forwardRef(({ open, onClose, type, data, currentPrice, sh
             </Box>
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, paddingTop: 1 }}>
-              <FormControl variant="outlined" className="input">
-                <InputLabel htmlFor="InputFullname">Nama Lengkap</InputLabel>
-                <OutlinedInput
-                  id="InputFullname"
-                  type="name"
-                  value={orderForm.name}
-                  onChange={handleOnChangeForm('name')}
-                  label="Nama Lengkap"
-                  placeholder="Masukkan Nama Lengkap"
-                  autoComplete="off"
-                />
-              </FormControl>
-              <FormControl variant="outlined" className="input">
-                <InputLabel htmlFor="InputPhoneNumber">Nomor Telepon</InputLabel>
-                <OutlinedInput
-                  id="InputPhoneNumber"
-                  type="phone"
-                  value={orderForm.phoneNumber}
-                  onChange={handleOnChangeForm('phoneNumber')}
-                  label="Nomor Telepon"
-                  placeholder="Masukkan Nomor Telepon"
-                  autoComplete="off"
-                />
-              </FormControl>
-              <FormControl variant="outlined" className="input">
-                <InputLabel htmlFor="InputAddress">Alamat Lengkap</InputLabel>
-                <OutlinedInput
-                  id="InputAddress"
-                  type="text"
-                  multiline
-                  minRows={5}
-                  value={orderForm.address}
-                  onChange={handleOnChangeForm('address')}
-                  label="Alamat Lengkap"
-                  placeholder="Masukkan Alamat Lengkap"
-                  autoComplete="off"
-                />
-              </FormControl>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography variant="h4">Penerima</Typography>
+                <FormControl variant="outlined" className="input" sx={{ marginBottom: 1 }}>
+                  <InputLabel htmlFor="InputFullname">Nama Lengkap</InputLabel>
+                  <OutlinedInput
+                    id="InputFullname"
+                    type="name"
+                    value={orderForm.name}
+                    onChange={handleOnChangeForm('name')}
+                    label="Nama Lengkap"
+                    placeholder="Masukkan Nama Lengkap"
+                    autoComplete="off"
+                  />
+                </FormControl>
+                <FormControl variant="outlined" className="input">
+                  <InputLabel htmlFor="InputPhoneNumber">Nomor Telepon</InputLabel>
+                  <OutlinedInput
+                    id="InputPhoneNumber"
+                    type="phone"
+                    value={orderForm.phoneNumber}
+                    onChange={handleOnChangeForm('phoneNumber')}
+                    label="Nomor Telepon"
+                    placeholder="Masukkan Nomor Telepon"
+                    autoComplete="off"
+                  />
+                </FormControl>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography variant="h4">Pengiriman</Typography>
+                <FormControl>
+                  <RadioGroup onChange={handleOnChangeForm('deliveryType')} value={orderForm.deliveryType}>
+                    <FormControlLabel value="cod" control={<Radio />} label="Ambil Pesanan Ke Toko" />
+                    <FormControlLabel value="ship" control={<Radio />} label="Antar Ke Alamat Tujuan" />
+                  </RadioGroup>
+                </FormControl>
+                {orderForm.deliveryType === 'ship' ? (
+                  <FormControl variant="outlined" className="input">
+                    <InputLabel htmlFor="InputAddress">Alamat Lengkap</InputLabel>
+                    <OutlinedInput
+                      id="InputAddress"
+                      type="text"
+                      value={orderForm.address}
+                      onChange={handleOnChangeForm('address')}
+                      label="Alamat Lengkap"
+                      placeholder="Masukkan Alamat Lengkap"
+                      autoComplete="off"
+                    />
+                  </FormControl>
+                ) : (
+                  <></>
+                )}
+              </Box>
             </Box>
           )}
         </DialogContent>

@@ -1,6 +1,6 @@
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import React, { useState } from 'react';
-import { Box, Button, FormControl, Grid, InputLabel, OutlinedInput, Typography } from '@mui/material';
+import { Box, Button, FormControl, FormControlLabel, Grid, InputLabel, OutlinedInput, Radio, RadioGroup, Typography } from '@mui/material';
 import { Fragment, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { MENU_OPEN } from 'utils/redux/action';
@@ -25,7 +25,7 @@ export default function CartPage() {
   const [orderForm, setOrderForm] = useState({
     name: '',
     phoneNumber: '',
-    address: ''
+    deliveryType: 'cod'
   });
 
   const [alertDescription, setAlertDescription] = useState({
@@ -124,7 +124,10 @@ export default function CartPage() {
             )
           ),
           ...orderForm,
-          processTracking: [{ name: orderProcess.orderCreate, date: new Date() }]
+          processTracking: [
+            { name: orderProcess.orderCreate, date: new Date() },
+            ...(orderForm.deliveryType === 'cod' ? [{ name: orderProcess.waitingPayment, date: new Date() }] : [{}])
+          ]
         })
           .catch(() => {
             setAddOrderProcess(false);
@@ -135,7 +138,7 @@ export default function CartPage() {
             setOrderForm({
               name: '',
               phoneNumber: '',
-              address: ''
+              deliveryType: 'cod'
             });
             [...carts].forEach((cart) => {
               cart.images.forEach((_, __) => deleteObject(ref(storage, `/cart-images/${cart.id}-image${__}`)));
@@ -177,6 +180,18 @@ export default function CartPage() {
       };
     }
   }, [carts]);
+
+  useEffect(()=>{
+    if(orderForm.deliveryType === 'cod'){
+      delete orderForm.address;
+    } else {
+      setOrderForm({
+        ...orderForm,
+        address : '',
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderForm.deliveryType]);
 
   return (
     <Fragment>
@@ -231,44 +246,58 @@ export default function CartPage() {
               <Box sx={{ backgroundColor: 'whitesmoke', height: '2px', borderRadius: 10 }} />
               <Spacer />
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <FormControl variant="outlined" className="input">
-                  <InputLabel htmlFor="InputFullname">Nama Lengkap</InputLabel>
-                  <OutlinedInput
-                    id="InputFullname"
-                    type="name"
-                    value={orderForm.name}
-                    onChange={handleOnChangeForm('name')}
-                    label="Nama Lengkap"
-                    placeholder="Masukkan Nama Lengkap"
-                    autoComplete="off"
-                  />
-                </FormControl>
-                <FormControl variant="outlined" className="input">
-                  <InputLabel htmlFor="InputPhoneNumber">Nomor Telepon</InputLabel>
-                  <OutlinedInput
-                    id="InputPhoneNumber"
-                    type="phone"
-                    value={orderForm.phoneNumber}
-                    onChange={handleOnChangeForm('phoneNumber')}
-                    label="Nomor Telepon"
-                    placeholder="Masukkan Nomor Telepon"
-                    autoComplete="off"
-                  />
-                </FormControl>
-                <FormControl variant="outlined" className="input">
-                  <InputLabel htmlFor="InputAddress">Alamat Lengkap</InputLabel>
-                  <OutlinedInput
-                    id="InputAddress"
-                    type="text"
-                    multiline
-                    minRows={5}
-                    value={orderForm.address}
-                    onChange={handleOnChangeForm('address')}
-                    label="Alamat Lengkap"
-                    placeholder="Masukkan Alamat Lengkap"
-                    autoComplete="off"
-                  />
-                </FormControl>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Typography variant="h4">Penerima</Typography>
+                  <FormControl variant="outlined" className="input" sx={{ marginBottom: 1 }}>
+                    <InputLabel htmlFor="InputFullname">Nama Lengkap</InputLabel>
+                    <OutlinedInput
+                      id="InputFullname"
+                      type="name"
+                      value={orderForm.name}
+                      onChange={handleOnChangeForm('name')}
+                      label="Nama Lengkap"
+                      placeholder="Masukkan Nama Lengkap"
+                      autoComplete="off"
+                    />
+                  </FormControl>
+                  <FormControl variant="outlined" className="input">
+                    <InputLabel htmlFor="InputPhoneNumber">Nomor Telepon</InputLabel>
+                    <OutlinedInput
+                      id="InputPhoneNumber"
+                      type="phone"
+                      value={orderForm.phoneNumber}
+                      onChange={handleOnChangeForm('phoneNumber')}
+                      label="Nomor Telepon"
+                      placeholder="Masukkan Nomor Telepon"
+                      autoComplete="off"
+                    />
+                  </FormControl>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Typography variant="h4">Pengiriman</Typography>
+                  <FormControl>
+                    <RadioGroup onChange={handleOnChangeForm('deliveryType')} value={orderForm.deliveryType}>
+                      <FormControlLabel value="cod" control={<Radio />} label="Ambil Pesanan Ke Toko" />
+                      <FormControlLabel value="ship" control={<Radio />} label="Antar Ke Alamat Tujuan" />
+                    </RadioGroup>
+                  </FormControl>
+                  {orderForm.deliveryType === 'ship' ? (
+                    <FormControl variant="outlined" className="input">
+                      <InputLabel htmlFor="InputAddress">Alamat Lengkap</InputLabel>
+                      <OutlinedInput
+                        id="InputAddress"
+                        type="text"
+                        value={orderForm.address}
+                        onChange={handleOnChangeForm('address')}
+                        label="Alamat Lengkap"
+                        placeholder="Masukkan Alamat Lengkap"
+                        autoComplete="off"
+                      />
+                    </FormControl>
+                  ) : (
+                    <></>
+                  )}
+                </Box>
               </Box>
               <Box sx={{ flex: 1 }} />
               <Box sx={{ height: '1px', width: '100%', backgroundColor: 'lightgrey', marginBottom: 2 }} />

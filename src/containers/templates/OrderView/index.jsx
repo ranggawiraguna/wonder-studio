@@ -152,12 +152,14 @@ export default function OrderView({ data }) {
               variant="contained"
               disabled={
                 accountReducer.role === 'customer' ||
-                (data.processTracking ?? []).map((_) => _.name).includes(orderProcess.paymentConfirmed)
+                (data.processTracking ?? []).map((_) => _.name).includes(orderProcess.paymentConfirmed) ||
+                data.deliveryType === 'cod'
               }
               sx={{
                 opacity:
                   accountReducer.role === 'customer' ||
-                  (data.processTracking ?? []).map((_) => _.name).includes(orderProcess.paymentConfirmed)
+                  (data.processTracking ?? []).map((_) => _.name).includes(orderProcess.paymentConfirmed) ||
+                  data.deliveryType === 'cod'
                     ? 0
                     : 1
               }}
@@ -173,41 +175,53 @@ export default function OrderView({ data }) {
           </Box>
           <Box>
             <FieldGroupView title="No. Pesanan" data={data.id} sx={{ marginBottom: '20px' }} withFrame />
-            <FieldGroupView title="Nama Pelanggan" data={data.name} sx={{ marginBottom: '30px' }} withFrame />
-            <FieldGroupView title="Nomor Telepon" data={data.phoneNumber} sx={{ marginBottom: '30px' }} withFrame />
-            <Typography variant="h4" component="h4" sx={{ color: '#666666', marginBottom: '10px', marginLeft: '2px' }}>
-              Daftar Produk
-            </Typography>
-            {data.products?.map((product, index) => (
-              <OrderItem
-                key={index}
-                data={product}
-                sx={{
-                  marginBottom: '10px',
-                  paddingBottom: '10px'
-                }}
-              />
-            ))}
-            <FieldGroupView title="Alamat Tujuan" data={data.address} sx={{ marginTop: '20px', marginBottom: '20px' }} />
+            <FieldGroupView title="Nama Pelanggan" data={data.name} sx={{ marginBottom: '20px' }} withFrame />
+            <FieldGroupView title="Nomor Telepon" data={data.phoneNumber} sx={{ marginBottom: '20px' }} withFrame />
+            <FieldGroupView
+              title="Tipe Pengiriman"
+              data={data.deliveryType === 'cod' ? 'Ambil Pesanan Ke Toko' : 'Antar Ke Alamat Tujuan'}
+              sx={{ marginBottom: '20px' }}
+              withFrame
+            />
+            <FieldGroupView
+              title="Alamat Tujuan"
+              data={data.address}
+              sx={{ marginBottom: '20px', ...(data.deliveryType === 'cod' ? { display: 'none' } : {}) }}
+              withFrame
+            />
             <FieldGroupView
               title="Tanggal Pesanan Dibuat"
               data={dateFormatter(data.dateCreated, 'eeee, d MMMM yyyy - HH:mm')}
               sx={{ marginBottom: '20px' }}
+              withFrame
             />
-            {data.dateFinished ? (
-              <FieldGroupView
-                title="Tanggal Pesanan Selesai"
-                data={data.dateFinished ? dateFormatter(data.dateFinished, 'eeee, d MMMM yyyy - HH:mm') : '-'}
-              />
-            ) : (
-              <></>
-            )}
+            <FieldGroupView
+              title="Tanggal Pesanan Selesai"
+              data={dateFormatter(data.dateFinished, 'eeee, d MMMM yyyy - HH:mm')}
+              sx={{ marginBottom: '30px', ...(data.dateFinished ? {} : { display: 'none' }) }}
+              withFrame
+            />
+            {data.products?.map((product, index) => (
+              <>
+                <Typography variant="h4" component="h4" sx={{ color: '#666666', marginBottom: '10px', marginLeft: '2px' }}>
+                  Daftar Produk
+                </Typography>
+                <OrderItem
+                  key={index}
+                  data={product}
+                  sx={{
+                    marginBottom: '10px',
+                    paddingBottom: '10px'
+                  }}
+                />
+              </>
+            ))}
           </Box>
         </Box>
         <Box gridArea="B">
           <Box>
             <Typography variant="h2" component="h2">
-              Proses Pelacakan
+              Proses Pesanan
             </Typography>
             {accountReducer.role === 'admin' ? (
               <Button variant="contained" onClick={() => setOpenDialogUpdateProcess(true)}>
@@ -267,12 +281,18 @@ export default function OrderView({ data }) {
             <Typography variant="p" component="p">
               {moneyFormatter(data.products ? data.products.reduce((a, b) => a + b.price, 0) : 0)}
             </Typography>
-            <Typography variant="h5" component="h5">
-              Jumlah Biaya Pengiriman
-            </Typography>
-            <Typography variant="p" component="p">
-              {moneyFormatter(data.shippingPrice ?? 0)}
-            </Typography>
+            {data.deliveryType === 'cod' ? (
+              <></>
+            ) : (
+              <>
+                <Typography variant="h5" component="h5">
+                  Jumlah Biaya Pengiriman
+                </Typography>
+                <Typography variant="p" component="p">
+                  {moneyFormatter(data.shippingPrice ?? 0)}
+                </Typography>
+              </>
+            )}
             <Typography variant="h5" component="h5">
               Jumlah Pembayaran
             </Typography>

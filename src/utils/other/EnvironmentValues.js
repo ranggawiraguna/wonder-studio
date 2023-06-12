@@ -62,6 +62,7 @@ const orderProcess = {
   prepareDesain: 'prepareDesain',
   printingProcess: 'printingProcess',
   orderProcess: 'orderProcess',
+  orderReadyPickup: 'orderReadyPickup',
   orderFinished: 'orderFinished',
   orderCanceled: 'orderCanceled',
 };
@@ -91,9 +92,13 @@ const orderProcessDetail = {
     title: 'Paket sedang dalam perjalanan',
     description: 'Paket Anda sudah dikirim oleh penjual, dimohon untuk melakukan konfirmasi ketika pesanan Anda telah sampai tujuan'
   },
+  [orderProcess.orderReadyPickup]: {
+    title: 'Pesanan Anda sudah siap',
+    description: 'Pesanan Anda sudah selesai dikerjakan, silahkan datang ke toko untuk mengambil pesanan kamu'
+  },
   [orderProcess.orderFinished]: {
-    title: 'Pesanan telah sampai',
-    description: 'Paket Anda sudah sampai tujuan, silahkan untuk memberikan penilaian terhadap produk yang telah Anda dapatkan'
+    title: 'Pesanan telah selesai',
+    description: 'Pesanan Anda telah selesai, silahkan untuk memberikan penilaian terhadap produk yang telah Anda dapatkan'
   },
   [orderProcess.orderCanceled]: {
     title: 'Pesanan dibatalkan',
