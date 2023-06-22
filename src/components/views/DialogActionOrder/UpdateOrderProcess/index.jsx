@@ -61,7 +61,7 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, .
       setIsUpdateProcess(true);
 
       if (currentProcess !== '') {
-        if (currentProcess !== orderProcess.orderCanceled ? data.shippingPrice : true) {
+        if (currentProcess !== orderProcess.orderCanceled ? (data.deliveryType === 'cod' ? true : data.shippingPrice) : true) {
           let newData = {
             processTracking: [
               ...data.processTracking,

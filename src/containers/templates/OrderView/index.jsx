@@ -254,7 +254,7 @@ export default function OrderView({ data }) {
                         {orderProcessDetail[e.name].title}
                       </Typography>
                       <Typography variant="p" component="p">
-                        {orderProcessDetail[e.name].description}
+                        {orderProcessDetail[e.name]?.description}
                       </Typography>
                       {getOptionalButtonAction(e.name)}
                     </Box>

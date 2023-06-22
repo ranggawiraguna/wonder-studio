@@ -78,7 +78,7 @@ export default function OrderGrid({ data, isAdmin = true, isCompleteListener, is
               <Box gridTemplateAreas={`"A B ."`} gridTemplateColumns={'auto auto 1fr'} style={showLastProcess ? {} : { display: 'none' }}>
                 <CardMedia component="img" src={IconOrderStatus} />
                 <Typography gridArea="B" variant="p" component="p">
-                  {orderProcessDetail[element.processTracking[element.processTracking.length - 1].name].description}
+                  {orderProcessDetail[element.processTracking[element.processTracking.length - 1].name]?.description}
                 </Typography>
               </Box>
               <hr />
