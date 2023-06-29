@@ -10,7 +10,7 @@ const StartedRoutes = [
   </Route>,
   <Route key="Register Page" profile path="/daftar" element={<RegisterPage />} />,
   <Route key="Started Page" exact path="/" replace element={<Navigate to="profile" />} />,
-  ['profile', 'service', 'product', 'product/:id', 'contact'].map((path) => <Route exact path={`/${path}`} element={<StartedPage />} />)
+  ['beranda', 'profile', 'service', 'product', 'product/:id', 'contact'].map((path) => <Route exact path={`/${path}`} element={<StartedPage />} />)
 ];
 
 export default StartedRoutes;

@@ -19,6 +19,12 @@ import IconGmail from 'assets/images/icon/IconGmail.png';
 import { useLocation, useParams } from 'react-router';
 import ProductCard from 'components/elements/CardProduct';
 import ProductDetailPage from '../ProductDetailPage';
+import Profile1 from 'assets/images/documentation/profile-1.jpeg';
+import Profile2 from 'assets/images/documentation/profile-2.jpeg';
+import Profile3 from 'assets/images/documentation/profile-3.jpeg';
+import Profile4 from 'assets/images/documentation/profile-4.jpeg';
+import Profile5 from 'assets/images/documentation/profile-5.jpeg';
+import Profile6 from 'assets/images/documentation/profile-6.jpeg';
 
 export default function StartedPage() {
   const params = useParams();
@@ -106,7 +112,7 @@ export default function StartedPage() {
 
         {(() => {
           switch (location.pathname) {
-            case '/profile':
+            case '/beranda':
               return (
                 <Fragment>
                   <Box className="box-content">
@@ -145,6 +151,74 @@ export default function StartedPage() {
                     <br />
                     <br />
                   </BoxTransition>
+                </Fragment>
+              );
+
+            case '/profile':
+              return (
+                <Fragment>
+                  <Box className="box-content">
+                    <BoxTransition variant="fade">
+                      <Typography variant="h1" component="h1">
+                        Wonder Studio
+                      </Typography>
+                      <Typography variant="p" component="p">
+                        Wonder Studio merupakan sebuah jasa percetakan digital yang melayani berbagai kebutuhan cetak anda seperti brosur,
+                        kartu nama, poster, dan lainnya. Kami memberikan kualitas cetak yang terjamin dengan harga yang kompetitif sehingga
+                        membantu anda lebih efisien dalam mencetak keperluan anda. Semua kebutuhan cetak dan printing kami sediakan dengan
+                        kualitas terbaik sehingga menarik untuk dibaca serta interaktif.
+                      </Typography>
+                      <Box className="map-desc">
+                        <CardMedia component="img" src={IconLocationMap} />
+                        <Typography variant="p" component="p">
+                          Jl. Raya Jakarta-Bogor No.Km. 40,7, Pabuaran, Kec. Cibinong, Kabupaten Bogor, Jawa Barat 16916.
+                        </Typography>
+                      </Box>
+                    </BoxTransition>
+                    <BoxTransition variant="fadeZoomRotate">
+                      <CardMedia component="img" src={LogoCircle} />
+                    </BoxTransition>
+                  </Box>
+                  <br />
+                  <BoxTransition variant="fade">
+                    <Button
+                      sx={{ marginLeft: { md: 13 }, borderRadius: 1000 }}
+                      onClick={() => {
+                        window.open('https://goo.gl/maps/CRd85HX32rvNL6Sg7', '_blank');
+                      }}
+                      variant="contained"
+                    >
+                      Lihat Google Maps
+                    </Button>
+                    <br />
+                    <br />
+                    <br />
+                  </BoxTransition>
+                  <br />
+                  <br />
+                  <br />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Typography variant="h2" component="h2">
+                      Dokumentasi
+                    </Typography>
+                    <Grid container spacing={5} sx={{ width: '100%', height: '100%', padding: 5 }}>
+                      {[Profile1, Profile2, Profile3, Profile4, Profile5, Profile6].map((_) => (
+                        <Grid item xs={12} sm={6} md={4}>
+                          <Box
+                            sx={{
+                              aspectRatio: '1/1',
+                              width: '100%',
+                              backgroundImage: `url(${_})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
+                            }}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                  <br />
+                  <br />
                 </Fragment>
               );
 

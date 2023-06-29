@@ -23,6 +23,21 @@ export default function ToolbarStarted(props) {
         {!isDownMd ? (
           <>
             <Box sx={{ flex: 1 }}>
+              <Link to="/beranda">
+                <Typography
+                  sx={{
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    color: location.pathname === '/beranda' ? 'black' : 'grey',
+                    marginRight: 2,
+                    '&:hover': {
+                      color: 'black'
+                    }
+                  }}
+                >
+                  Beranda
+                </Typography>
+              </Link>
               <Link to="/profile">
                 <Typography
                   sx={{

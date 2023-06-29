@@ -128,13 +128,12 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, .
         } else {
           setCustomer(null);
         }
-
-        return () => {
-          listenerCustomer();
-        };
       });
+      return () => {
+        listenerCustomer();
+      };
     }
-  }, [data]);
+  }, [data.customerId]);
 
   return (
     <Fragment>
@@ -190,7 +189,7 @@ const DialogUpdateOrderProcess = forwardRef(({ open, onClose, data, showAlert, .
                 :
               </Typography>
               <Typography variant="h5" component="h5">
-                {customer.username}
+                {customer?.username}
               </Typography>
               <Typography variant="h5" component="h5">
                 Nama
